@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">Baby</string>
+    <string name="action_about">About</string>
+    <string name="author1">Written by Papa(SwimLurker)  &#060;(￣︶￣)&#062; </string>
+    <string name="author2">Special Thanks to Mama(DouDouRui) (￣o￣) . z Z　</string>
+    <string name="splash_titletext">To: My Most Lovely Baby</string>
+    <string name="splash_titletext2">By Love you Papa, Mama</string>
+    <string name="gridview_icontext_pictures">Pictures</string>
+    <string name="gridview_icontext_lianliankan">Game-连连看</string>
+    <string name="gridview_icontext_puzzle">Game-拼图</string>
+    <string name="title_aboutdialog">About</string>
+    <string name="lable_closebtn">Close</string>
+</resources>

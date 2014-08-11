@@ -1,0 +1,24 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android" >
+
+    <item
+        android:id="@+id/game_puzzle_menuitem_restart"
+        android:orderInCategory="100"
+        android:showAsAction="never"
+        android:title="@string/game_puzzle_menuitem_restart"/>
+    <item
+        android:id="@+id/game_puzzle_menuitem_settings"
+        android:orderInCategory="200"
+        android:showAsAction="never"
+        android:title="@string/game_puzzle_menuitem_settings"/>
+    <item
+        android:id="@+id/game_puzzle_menuitem_resolve"
+        android:orderInCategory="300"
+        android:showAsAction="never"
+        android:title="@string/game_puzzle_menuitem_resolve"/>
+	<item
+        android:id="@+id/game_puzzle_menuitem_quit"
+        android:orderInCategory="400"
+        android:showAsAction="never"
+        android:title="@string/game_puzzle_menuitem_quit"/>
+    
+</menu>

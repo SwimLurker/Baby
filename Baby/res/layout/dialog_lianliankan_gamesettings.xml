@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:scrollbars="vertical" >
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical" >
+
+        <TableLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" >
+			<TableRow
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" >
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/game_lianliankan_lable_settings_music"
+                    android:textColor="#FFFFFF"
+                    android:textSize="14sp"
+                    android:textStyle="normal"
+                    android:layout_weight="5.0" >
+                </TextView>
+                <ToggleButton
+			        android:id="@+id/game_settings_music"
+			        android:layout_width="wrap_content"
+			    	android:layout_height="wrap_content"
+			    	android:layout_gravity="center"
+			    	android:textOn=""
+		            android:textOff="" 
+		            android:layout_weight="1.0"
+		            android:background="@layout/selector_togglebutton"
+		            android:layout_margin="10dp" />
+             
+            </TableRow>
+            <TableRow
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" >
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/game_lianliankan_lable_settings_sfx"
+                    android:textColor="#FFFFFF"
+                    android:textSize="14sp"
+                    android:textStyle="normal"
+                    android:layout_weight="5.0" >
+                </TextView>
+                <ToggleButton
+			        android:id="@+id/game_settings_sfx"
+			        android:layout_width="wrap_content"
+			    	android:layout_height="wrap_content"
+			    	android:layout_gravity="center"
+			    	android:textOn=""
+		            android:textOff="" 
+		            android:layout_weight="1.0" 
+		            android:background="@layout/selector_togglebutton"
+		            android:layout_margin="10dp" />
+             
+            </TableRow>
+          	<TableRow
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" >
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/game_lianliankan_lable_settings_level"
+                    android:textColor="#FFFFFF"
+                    android:textSize="14sp"
+                    android:textStyle="normal"
+                    android:layout_weight="5.0" >
+                </TextView>
+           		<RadioGroup
+               		android:id="@+id/game_settings_level"
+               		android:layout_width="wrap_content"
+               		android:layout_height="wrap_content"
+               		android:orientation="horizontal" >
+	               	<RadioButton
+	               	    android:id="@+id/game_settings_level_easy"
+	                    android:layout_width="wrap_content"
+	                    android:layout_height="wrap_content"
+	                    android:checked="true"
+	                    android:text="@string/game_lianliankan_lable_settings_level_easy" 
+	                    android:textColor="#FFFFFF" />
+	                <RadioButton
+	               	    android:id="@+id/game_settings_level_normal"
+	                    android:layout_width="wrap_content"
+	                    android:layout_height="wrap_content"
+	                    android:checked="false"
+	                    android:text="@string/game_lianliankan_lable_settings_level_normal" 
+	                    android:textColor="#FFFFFF" />
+	                <RadioButton
+	               	    android:id="@+id/game_settings_level_hard"
+	                    android:layout_width="wrap_content"
+	                    android:layout_height="wrap_content"
+	                    android:checked="false"
+	                    android:text="@string/game_lianliankan_lable_settings_level_hard"
+	                    android:textColor="#FFFFFF" />
+               	</RadioGroup>
+            </TableRow>
+           
+           
+    	</TableLayout>
+    </LinearLayout>
+
+</ScrollView>

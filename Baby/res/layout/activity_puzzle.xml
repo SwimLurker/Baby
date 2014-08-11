@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:slstudio="http://schemas.slstudio.org/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical" 
+    android:background="#f1928e">
+	<RelativeLayout 
+	    android:layout_width="fill_parent"
+        android:layout_height="70dp" >
+
+       	<include
+       	    android:layout_width="match_parent"
+       	    android:layout_height="match_parent"
+       	    layout="@layout/titlebar_puzzle" />
+
+    </RelativeLayout>
+    <RelativeLayout 
+	    android:layout_width="fill_parent"
+   		android:layout_height="fill_parent"
+   		android:layout_margin="20dp" > 
+   		<RelativeLayout 
+   		 	android:id="@+id/game_puzzle_fullpic_layout"
+		    android:layout_width="fill_parent"
+	   		android:layout_height="fill_parent"
+	   		android:layout_margin="10dp" 
+	   		android:visibility="gone"> 
+   			<ImageView
+   			    android:id="@+id/game_puzzle_fullpic"
+	   		    android:layout_width="fill_parent"  
+	   		    android:layout_height="fill_parent"
+	   		    android:scaleType="fitXY" />
+   			<ImageButton
+   			    android:id="@+id/game_puzzle_fullpic_closebtn"
+   			    android:layout_width="wrap_content"  
+	   		    android:layout_height="wrap_content"
+	   		    android:background="@layout/selector_btn_close"
+	   		    android:layout_alignParentTop="true"
+	   		    android:layout_alignParentRight="true"
+	   		    android:layout_marginTop="10dp"
+	   		    android:layout_marginRight="10dp" />
+	   </RelativeLayout>		    
+	   	<org.slstudio.baby.game.puzzle.ui.PuzzleView 
+	        android:id="@+id/game_puzzle_layout"
+		    android:layout_width="fill_parent"
+	   		android:layout_height="fill_parent" 
+	   		android:layout_margin="0dp"
+	   		android:padding="0dp"
+	   		android:background="#FFFFFF" >   
+		</org.slstudio.baby.game.puzzle.ui.PuzzleView>
+	</RelativeLayout>
+</LinearLayout>

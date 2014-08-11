@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:slstudio="http://schemas.slstudio.org/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical" 
+    android:background="#70a3e8">
+	<RelativeLayout 
+	    android:layout_width="fill_parent"
+        android:layout_height="70dp" >
+       	<include layout="@layout/titlebar_lianliankan" />
+    </RelativeLayout>
+    <RelativeLayout 
+	    android:layout_width="fill_parent"
+   		android:layout_height="fill_parent" >   
+	    <org.slstudio.baby.game.lianliankan.ui.LianLianKanMapView
+	         android:id="@+id/game_lianliankan_map"
+	         android:layout_width="fill_parent"
+	         android:layout_height="fill_parent"
+	         android:layout_centerHorizontal="true"
+	         android:layout_centerVertical="true"
+	         android:focusable="true"
+	         android:focusableInTouchMode="true" 
+	         slstudio:marginTop="10"
+	         slstudio:marginLeft="50"
+	         slstudio:marginBottom="30"
+	         slstudio:marginRight="50"
+	         slstudio:block_width="80"
+	         slstudio:block_height="100"
+	         android:background="#70a3e8"
+	         >
+	     	<requestFocus />
+	     </org.slstudio.baby.game.lianliankan.ui.LianLianKanMapView>
+	</RelativeLayout>
+</LinearLayout>
