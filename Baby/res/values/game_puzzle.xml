@@ -4,11 +4,13 @@
     <string name="game_puzzle_title_settings">Settings</string>
     <string name="game_puzzle_info_quitconfirm">Do you want to quit the game?</string>
     <string name="game_puzzle_info_restartconfirm">Do you want to restart game?</string>
-    <string name="game_puzzle_info_resolveconfirm">Do you want to resolve the game automatically?</string>
+    <string name="game_puzzle_info_resolveconfirm">Do you want to resolve the game automatically? This may take some time to calculate the solution.</string>
     <string name="game_puzzle_info_resolvestep">Resolve total steps:</string>
     <string name="game_puzzle_info_succeeddialog">Congratulations! You have finished the mini game.</string>
     <string name="game_puzzle_info_gameoverdialog">Game Over!</string>
     <string name="game_puzzle_info_settingschangeconfirm">The game settings has changed, do you want to restart the game?</string>
+    <string name="game_puzzle_info_resolvingprogress">Current progress is:</string>
+    <string name="game_puzzle_info_resolvingprepare">Waiting for algorithm prepare...</string>
     <string name="game_puzzle_info_gamepaused">Game Paused</string>
     <string name="game_puzzle_info_gameover">Game Over</string>
     <string name="game_puzzle_lable_restartbtn">Play Again</string>

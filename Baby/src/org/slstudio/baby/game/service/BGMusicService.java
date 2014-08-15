@@ -6,10 +6,13 @@ import android.app.Service;
 import android.content.Intent;
 import android.media.MediaPlayer;
 import android.os.Binder;
+import android.os.Bundle;
 import android.os.IBinder;
 
 public class BGMusicService extends Service implements MediaPlayer.OnCompletionListener{
-
+	
+	public static final String BGM_ID = "org.slstudio.baby.game.BGMusicService.BGM_ID";
+	
 	private MediaPlayer player;
 	
 	private final IBinder binder = new BGMusicBinder();
@@ -27,13 +30,31 @@ public class BGMusicService extends Service implements MediaPlayer.OnCompletionL
 	@Override
 	public void onCreate(){
 		super.onCreate();
-		player = MediaPlayer.create(this, R.raw.music_bg);
-		player.setLooping(true);
-		player.setOnCompletionListener(this);
 	}
 	
 	@Override
 	public int onStartCommand(Intent intent, int flags, int startId){
+		Bundle extras = intent.getExtras();
+		if(extras != null){
+			int bgm_id = intent.getExtras().getInt(BGM_ID);
+			if(bgm_id != 0){
+				if(player!=null){
+					if(player.isPlaying()){
+						player.stop();
+					}
+					player.release();
+				}
+				player = MediaPlayer.create(this, bgm_id);
+				player.setLooping(true);
+				player.setOnCompletionListener(this);
+			}
+		}
+		if(player == null){
+			player = MediaPlayer.create(this, R.raw.music_bg_lianliankan);
+			player.setLooping(true);
+			player.setOnCompletionListener(this);
+		}
+		
 		if(!player.isPlaying()){
 			player.start();
 		}

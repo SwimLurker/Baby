@@ -557,6 +557,7 @@ public class LianLianKanGameActivity extends Activity implements IGameListener, 
 		if(!isBGMusicMute){
 			Intent intent = new Intent();
 			intent.setClass(this, BGMusicService.class);
+			intent.putExtra(BGMusicService.BGM_ID, R.raw.music_bg_lianliankan);
 			ComponentName name = startService(intent);
 			bindService(intent, conn, Context.BIND_AUTO_CREATE);
 		}

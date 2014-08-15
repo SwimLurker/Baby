@@ -12,10 +12,14 @@ import org.slstudio.baby.game.GameException;
 import org.slstudio.baby.game.IGameListener;
 import org.slstudio.baby.game.IGameTimerListener;
 import org.slstudio.baby.game.TimeableGame;
+import org.slstudio.baby.game.puzzle.AlgorithmNotReadyException;
+import org.slstudio.baby.game.puzzle.IDAStarWithWDAlgorithm;
+import org.slstudio.baby.game.puzzle.IProgressListener;
 import org.slstudio.baby.game.puzzle.IPuzzleGameListener;
 import org.slstudio.baby.game.puzzle.Puzzle;
 import org.slstudio.baby.game.puzzle.PuzzleProfile;
 import org.slstudio.baby.game.puzzle.PuzzleResolver;
+import org.slstudio.baby.game.puzzle.DIRECTION;
 import org.slstudio.baby.game.puzzle.ui.PuzzleView;
 import org.slstudio.baby.game.service.BGMusicService;
 import org.slstudio.baby.game.util.SoundPlayer;
@@ -29,8 +33,10 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.ServiceConnection;
+import android.content.res.Configuration;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
@@ -58,7 +64,6 @@ public class PuzzleGameActivity extends Activity implements IGameListener, IGame
 	
 	public static final int MSG_RESOLVER_UPDATE = 10;
 	
-	
 	public static final int SFX_PRESSKEY = 1;
 	public static final int SFX_GAMEOVER = 2;
 	public static final int SFX_GAMESTART = 3;
@@ -85,7 +90,6 @@ public class PuzzleGameActivity extends Activity implements IGameListener, IGame
 	private RelativeLayout fullPicLayout = null;
 	private ImageView fullPicIV = null;
 	private ImageButton closeFullPicIV = null;
-	
 	
 	private Puzzle puzzle = null;
 	
@@ -115,57 +119,65 @@ public class PuzzleGameActivity extends Activity implements IGameListener, IGame
 	
 	private Random random = new Random();
 	
-	private Stack<PuzzleResolver.DIRECTION> resolveMoves = null;
+	private Stack<DIRECTION> resolveMoves = null;
 	
 	private int resolveSteps = 0;
 	
 	private Handler resolverHandler = new Handler(){
 		@Override
 		public void handleMessage(Message msg){
-			switch (msg.what){
-			case MSG_RESOLVER_UPDATE:
-				if(resolveMoves!=null && resolveMoves.size()!=0){
-					PuzzleResolver.DIRECTION direction  = resolveMoves.pop();
-					int from  = puzzle.getBlankPieceIndex();
-					int to  = -1;
-					switch(direction){
-					case UP:
-						to = from - puzzle.getDimension();
-						break;
-					case DOWN:
-						to = from + puzzle.getDimension();
-						break;
-					case LEFT:
-						to = from -1;
-						break;
-					case RIGHT:
-						to = from + 1;
-						break;
+			if(puzzle.isStarted()){
+				switch (msg.what){
+				case MSG_RESOLVER_UPDATE:
+					
+					if(resolveMoves!=null && resolveMoves.size()!=0){
+						DIRECTION direction  = resolveMoves.pop();
+						int from  = puzzle.getBlankPieceIndex();
+						int to  = -1;
+						switch(direction){
+						case UP:
+							to = from - puzzle.getDimension();
+							break;
+						case DOWN:
+							to = from + puzzle.getDimension();
+							break;
+						case LEFT:
+							to = from -1;
+							break;
+						case RIGHT:
+							to = from + 1;
+							break;
+						}
+						puzzle.movePiece(from, to);
+						resolveSteps ++;
+						this.sendEmptyMessageDelayed(MSG_RESOLVER_UPDATE, 500);
+					}else{
+						new AlertDialog.Builder(PuzzleGameActivity.this)
+						.setIcon(R.drawable.ic_launcher)
+						.setTitle(resources.getString(R.string.game_puzzle_info_resolvestep) + Integer.toString(resolveSteps))
+						.setPositiveButton(resources.getString(R.string.game_puzzle_lable_closebtn),
+								new DialogInterface.OnClickListener() {
+									@Override
+									public void onClick(DialogInterface dialog,	int which) {
+										dialog.dismiss();
+										puzzle.gameWin();
+									}
+								}).show();
+						
+						enableInput();
+						
 					}
-					puzzle.movePiece(from, to);
-					resolveSteps ++;
-					this.sendEmptyMessageDelayed(MSG_RESOLVER_UPDATE, 500);
-				}else{
-					new AlertDialog.Builder(PuzzleGameActivity.this)
-					.setIcon(R.drawable.ic_launcher)
-					.setTitle(resources.getString(R.string.game_puzzle_info_resolvestep) + Integer.toString(resolveSteps))
-					.setPositiveButton(resources.getString(R.string.game_puzzle_lable_closebtn),
-							new DialogInterface.OnClickListener() {
-								@Override
-								public void onClick(DialogInterface dialog,	int which) {
-									dialog.dismiss();
-									puzzle.gameWin();
-								}
-							}).show();
-					
-					enableInput();
-					
+					break;
 				}
-				break;
 			}
 			super.handleMessage(msg);
 		}
 	};
+	
+	
+	private PuzzleResolverAsyncTask task = null;
+	
+	private PuzzleResolver resolver = null;
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -257,11 +269,27 @@ public class PuzzleGameActivity extends Activity implements IGameListener, IGame
 			}
 			
 		});
-		
+		AsyncTask ta = new AsyncTask(){
+
+			@Override
+			protected Object doInBackground(Object... params) {
+				IDAStarWithWDAlgorithm.initialize();
+				return null;
+			}
+			
+		};
+		ta.execute(new Object[0]);
 
 		startGame();
 		
 	}
+	
+	
+	@Override
+    public void onConfigurationChanged(Configuration newConfig) {
+        super.onConfigurationChanged(newConfig);
+	}
+	
 	@Override
 	public boolean onPrepareOptionsMenu(Menu menu){
 		if(!puzzle.isPaused()){
@@ -318,9 +346,6 @@ public class PuzzleGameActivity extends Activity implements IGameListener, IGame
 							new DialogInterface.OnClickListener() {
 								@Override
 								public void onClick(DialogInterface dialog,	int which) {
-									if(puzzle!=null &&puzzle.isStarted() && puzzle.isPaused()){
-										puzzle.resume();
-									}
 									resolvePuzzle();
 								}
 							})
@@ -387,7 +412,7 @@ public class PuzzleGameActivity extends Activity implements IGameListener, IGame
 	}
 	
 	@Override
-	public void onBackPressed() {  	
+	public void onBackPressed() {
 		exitGame();
     }
 	
@@ -569,6 +594,7 @@ public class PuzzleGameActivity extends Activity implements IGameListener, IGame
         	.show();
 	}
 	
+	
 	private void saveConfiguration() {
 		switch(level){
 		case LEVEL_EASY:
@@ -687,6 +713,7 @@ public class PuzzleGameActivity extends Activity implements IGameListener, IGame
 		if(!isBGMusicMute){
 			Intent intent = new Intent();
 			intent.setClass(this, BGMusicService.class);
+			intent.putExtra(BGMusicService.BGM_ID, R.raw.music_bg_puzzle);
 			ComponentName name = startService(intent);
 			bindService(intent, conn, Context.BIND_AUTO_CREATE);
 		}
@@ -786,6 +813,7 @@ public class PuzzleGameActivity extends Activity implements IGameListener, IGame
 	@Override
 	public void onStopped(AbstractGame game) {
 		stopPlayBGMusic();
+		
 		controlBtn.setEnabled(false);
 		fullPicBtn.setEnabled(false);
 		puzzleView.removeAllViews();
@@ -826,15 +854,32 @@ public class PuzzleGameActivity extends Activity implements IGameListener, IGame
 	}
 	
 	private void resolvePuzzle() {
-		List<PuzzleResolver.DIRECTION> moves = PuzzleResolver.resolvePuzzle(puzzle);
-		resolveMoves = new Stack<PuzzleResolver.DIRECTION>();
-		resolveSteps = 0;
-		for(int i = moves.size() -1; i>=0; i--){
-			resolveMoves.push(moves.get(i));
-		}
-		bolckInput();
+
 		
-		resolverHandler.sendEmptyMessage(MSG_RESOLVER_UPDATE);
+		
+		final View dialogView = getLayoutInflater().inflate(R.layout.dialog_puzzle_resolving, null);
+		
+    	Dialog dialog = new AlertDialog.Builder(this)
+        	.setIcon(R.drawable.ic_launcher)
+        	.setTitle(resources.getString(R.string.game_puzzle_info_resolvingprogress))
+        	.setView(dialogView)
+        	.setCancelable(false)
+        	.setPositiveButton(resources.getString(R.string.game_puzzle_lable_cancelbtn), new DialogInterface.OnClickListener(){
+
+				@Override
+				public void onClick(DialogInterface dialog, int which) {
+					if(task!=null){
+						task.cancel(true);
+					}
+				}
+        		
+        	})
+        	.show();
+    	
+    	
+    	task = new PuzzleResolverAsyncTask(dialog);
+    	
+		task.execute(new Puzzle[]{puzzle});
 	}
 	
 	private void enableInput() {
@@ -847,5 +892,76 @@ public class PuzzleGameActivity extends Activity implements IGameListener, IGame
 		puzzleView.setEnabled(false);
 		controlBtn.setEnabled(false);
 		fullPicBtn.setEnabled(false);
+	}
+	
+	class PuzzleResolverAsyncTask extends AsyncTask<Puzzle, Long, List<DIRECTION> > implements IProgressListener{
+		private Dialog progressDialog = null;
+		
+		public PuzzleResolverAsyncTask(Dialog dialog){
+			this.progressDialog = dialog;
+		}
+		
+		@Override
+		protected List<DIRECTION> doInBackground(Puzzle... params) {
+			resolver = new PuzzleResolver(params[0]);
+			List<DIRECTION> result = null;
+			while(puzzle.isStarted()){
+				try{
+					result = resolver.resolvePuzzle(this);
+					break;
+				}catch(AlgorithmNotReadyException anre){
+					try {
+						Thread.sleep(1000);
+					} catch (InterruptedException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+				}catch(GameException exp){
+					exp.printStackTrace();
+					break;
+				}
+			}
+			return result;
+		}
+		
+		@Override
+		protected void onPostExecute(List<DIRECTION> result){
+			
+			progressDialog.dismiss();
+			
+			if(puzzle!=null &&puzzle.isStarted() && puzzle.isPaused()){
+				puzzle.resume();
+			}
+			if(result!=null && !task.isCancelled()){
+				resolveMoves = new Stack<DIRECTION>();
+				resolveSteps = 0;
+				for(int i = result.size() -1; i>=0; i--){
+					resolveMoves.push(result.get(i));
+				}
+				bolckInput();
+				resolverHandler.sendEmptyMessage(MSG_RESOLVER_UPDATE);
+			}
+		}
+		
+		@Override  
+	    protected void onProgressUpdate(Long... values) {  
+	        long ans = values[0];  
+	        long iterationCount = values[1];
+	        long consumeTime = values[2];
+	        
+	        TextView resolvingProgressTV = (TextView) progressDialog.findViewById(R.id.game_puzzle_textview_resolvingprogress);
+			
+	        resolvingProgressTV.setText("Target Moves("+ Long.toString(ans) + "), Iteration Count(" + Long.toString(iterationCount) +"), Time Consumed(" + Long.toString(consumeTime) + ")");  
+	    }
+
+		@Override
+		public void onProgress(long[] progressData) {
+			this.publishProgress(progressData[0], progressData[1], progressData[2]);
+		}
+		
+		@Override
+		protected void onCancelled() {
+			resolver.setCancelled(true);
+		}
 	}
 }

@@ -106,7 +106,7 @@ public class PuzzleView extends AbsoluteLayout{
 		super.onDraw(canvas);
 	}
 
-	@Override  
+	@Override   
 	protected void dispatchDraw(Canvas canvas) { 
 		super.dispatchDraw(canvas);
 		if(puzzle != null){
@@ -149,8 +149,7 @@ public class PuzzleView extends AbsoluteLayout{
 			for(int j=0; j<dimension; j++){
 				View view = findViewById(PIECEVIEW_ID_BASE + index);
 				if(view!= null){
-					AbsoluteLayout.LayoutParams lp = new AbsoluteLayout.LayoutParams(pieceWidth, pieceHeight, j*pieceWidth, i* pieceHeight);
-					view.setLayoutParams(lp);
+					view.layout(j*pieceWidth,  i* pieceHeight, (j+1)* pieceWidth, (i+1) * pieceHeight);
 				}
 				index ++;
 			}
@@ -237,7 +236,6 @@ public class PuzzleView extends AbsoluteLayout{
 				swapPieceImage(fromPieceIndex, toPieceIndex);
 				invalidate();
 				onAnimation = false;
-				Log.d("Animation", "Animation End");
 			}
 
 			@Override
@@ -250,7 +248,6 @@ public class PuzzleView extends AbsoluteLayout{
 			public void onAnimationStart(Animation animation) {
 				// TODO Auto-generated method stub
 				onAnimation = true;
-				Log.d("Animation", "Animation Start");
 			}
 			
 		});
@@ -258,12 +255,10 @@ public class PuzzleView extends AbsoluteLayout{
 		
 		
 		ImageView fromView = (ImageView)findViewById(PIECEVIEW_ID_BASE + from);
-		fromView.setAnimation(ani);
-		ani.start();
-		
-		
-		
-		
+		if(fromView != null){
+			fromView.setAnimation(ani);
+			ani.start();
+		}
 		
 	}
 	
