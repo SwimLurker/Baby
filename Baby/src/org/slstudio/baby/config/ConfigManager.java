@@ -27,6 +27,10 @@ public class ConfigManager {
 	public static String CONFIG_PUZZLE_GAME_SFX_ON = "game_puzzle_sfx";
 	public static String CONFIG_PUZZLE_GAME_LEVEL = "game_puzzle_level";
 	
+	public static String CONFIG_TETRIS_GAME_MUSIC_ON = "game_tetris_music";
+	public static String CONFIG_TETRIS_GAME_SFX_ON = "game_tetris_sfx";
+	public static String CONFIG_TETRIS_GAME_LEVEL = "game_tetris_level";
+	
 	private static ConfigManager _instance = null;
 	
 	private boolean bLoaded = false;

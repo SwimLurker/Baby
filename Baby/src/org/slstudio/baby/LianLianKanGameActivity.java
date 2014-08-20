@@ -6,6 +6,7 @@ import java.lang.reflect.Field;
 import org.slstudio.baby.config.ConfigManager;
 import org.slstudio.baby.game.lianliankan.Block;
 import org.slstudio.baby.game.AbstractGame;
+import org.slstudio.baby.game.GameActivity;
 import org.slstudio.baby.game.GameException;
 import org.slstudio.baby.game.IGameListener;
 import org.slstudio.baby.game.IGameTimerListener;
@@ -41,7 +42,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.ToggleButton;
 
-public class LianLianKanGameActivity extends Activity implements IGameListener, IGameTimerListener, ILianLianKanListener{
+public class LianLianKanGameActivity extends GameActivity implements IGameTimerListener, ILianLianKanListener{
 	public static final int SFX_PRESSKEY = 1;
 	public static final int SFX_GAMEOVER = 2;
 	public static final int SFX_GAMESTART = 3;
@@ -56,7 +57,6 @@ public class LianLianKanGameActivity extends Activity implements IGameListener, 
 	public static final int LEVEL_HARD = 3;
 	
 	
-	private LianLianKan lianliankan = null;
 	private int level = LEVEL_EASY;
 	private LianLianKanProfile profile = null;
 	
@@ -71,29 +71,10 @@ public class LianLianKanGameActivity extends Activity implements IGameListener, 
 	private ImageButton controlButton = null;
 	private TextView controlText = null;
 	
-	private SoundPlayer soundPlayer = null;
-	
-	private BGMusicService musicService = null;
-	
-	private boolean isSFXMute = true;
-	private boolean isBGMusicMute = true;
 	
 	private boolean timeUPPlayed = false;
 	
-	private ServiceConnection conn = new ServiceConnection(){
-		@Override
-		public void onServiceDisconnected(ComponentName name){
-			musicService = null;
-		}
-		
-		@Override
-		public void onServiceConnected(ComponentName name, IBinder binder){
-			musicService = ((BGMusicService.BGMusicBinder)binder).getService();
-		}
-	};
-	
-	
-	
+
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -103,10 +84,6 @@ public class LianLianKanGameActivity extends Activity implements IGameListener, 
 		setContentView(R.layout.activity_lianliankan);
 		
 		resources = getResources();
-		
-		loadConfiguration();
-		
-		initSFXandMusic();
 		
 		
 		gameMapView = (LianLianKanMapView)findViewById(R.id.game_lianliankan_map);
@@ -129,12 +106,12 @@ public class LianLianKanGameActivity extends Activity implements IGameListener, 
 			public void onClick(View v) {
 				playSFX(SFX_PRESSKEY);
 				
-				if(lianliankan!=null && lianliankan.isStarted()){
-					if(lianliankan.isPaused()){
-						lianliankan.resume();
+				if(game!=null && game.isStarted()){
+					if(game.isPaused()){
+						game.resume();
 						
 					}else{
-						lianliankan.pause();
+						game.pause();
 					}
 				}
 			}
@@ -145,15 +122,15 @@ public class LianLianKanGameActivity extends Activity implements IGameListener, 
 
 			@Override
 			public void onClick(View v) {
-				if(lianliankan!=null && lianliankan.isRunning()){
+				if(game!=null && game.isRunning()){
 					playSFX(SFX_PRESSKEY);
 					
-					int hintNumber = lianliankan.getHintNumber();
+					int hintNumber = ((LianLianKan)game).getHintNumber();
 					if(hintNumber<=0 && hintNumber!=-1){
 						Toast.makeText(LianLianKanGameActivity.this, "No available hint", Toast.LENGTH_SHORT).show();
 						return;
 					}
-					lianliankan.getHint();
+					((LianLianKan)game).getHint();
 				}
 				
 			}
@@ -162,8 +139,8 @@ public class LianLianKanGameActivity extends Activity implements IGameListener, 
 		startGame();
 	}
 	
-	private void initSFXandMusic() {
-		soundPlayer = new SoundPlayer(this);
+	@Override
+	protected void loadSFX() {
 		soundPlayer.load(R.raw.key, SFX_PRESSKEY);
 		soundPlayer.load(R.raw.gameover, SFX_GAMEOVER);
 		soundPlayer.load(R.raw.gamestart, SFX_GAMESTART);
@@ -173,18 +150,10 @@ public class LianLianKanGameActivity extends Activity implements IGameListener, 
 		soundPlayer.load(R.raw.blockselected, SFX_BLOCKSELECTED);
 		soundPlayer.load(R.raw.timeup, SFX_TIMEUP);
 	}
-
-	@Override
-	public boolean onPrepareOptionsMenu(Menu menu){
-		if(!lianliankan.isPaused()){
-			lianliankan.pause();
-		}
-		return true;
-	}
 	
 	@Override
-	public void onOptionsMenuClosed(Menu menu){
-		super.onOptionsMenuClosed(menu);
+	protected int getBGMResourceID() {
+		return R.raw.music_bg;
 	}
 	
 	@Override
@@ -246,34 +215,6 @@ public class LianLianKanGameActivity extends Activity implements IGameListener, 
 		return true;
 	}
 
-	@Override
-	protected void onDestroy(){
-		if(musicService != null){
-			stopPlayBGMusic();
-		}
-		super.onDestroy();
-	}
-	
-	@Override
-	protected void onPause(){
-		if(musicService != null){
-			pauseBGMusic();
-		}
-		super.onPause();
-	}
-	
-	@Override
-	protected void onResume(){
-		super.onResume();
-		if(musicService != null){
-			resumeBGMusic();
-		}
-	}
-	
-	@Override
-	public void onBackPressed() {  	
-		exitGame();
-    }
 
 	private void showSettingsDialog() {
 		final View dialogView = getLayoutInflater().inflate(R.layout.dialog_lianliankan_gamesettings, null);
@@ -308,14 +249,14 @@ public class LianLianKanGameActivity extends Activity implements IGameListener, 
     	
 		
 		ToggleButton musicTB = (ToggleButton) dialogView.findViewById(R.id.game_settings_music);
-		if(isBGMusicMute){
+		if(isBGMusicMute()){
 			musicTB.setChecked(false);
 		}else{
 			musicTB.setChecked(true);
 		}
 		
 		ToggleButton sfxTB = (ToggleButton) dialogView.findViewById(R.id.game_settings_sfx);
-		if(isSFXMute){
+		if(isSFXMute()){
 			sfxTB.setChecked(false);
 		}else{
 			sfxTB.setChecked(true);
@@ -362,10 +303,10 @@ public class LianLianKanGameActivity extends Activity implements IGameListener, 
 					}
 					
 					ToggleButton musicTB = (ToggleButton) dialogView.findViewById(R.id.game_settings_music);
-					isBGMusicMute = !musicTB.isChecked();
+					setBGMusicMute(!musicTB.isChecked());
 					
 					ToggleButton sfxTB = (ToggleButton) dialogView.findViewById(R.id.game_settings_sfx);
-					isSFXMute = !sfxTB.isChecked();
+					setSFXMute(!sfxTB.isChecked());
 					
 					saveConfiguration();
 					
@@ -454,7 +395,8 @@ public class LianLianKanGameActivity extends Activity implements IGameListener, 
         	.show();
 	}
 	
-	private void saveConfiguration() {
+	@Override
+	protected void saveConfiguration() {
 		switch(level){
 		case LEVEL_EASY:
 			ConfigManager.getInstance().saveConfigure(ConfigManager.CONFIG_LIANLIANKAN_GAME_LEVEL, "easy");
@@ -470,12 +412,13 @@ public class LianLianKanGameActivity extends Activity implements IGameListener, 
 			break;
 		}
 		
-		ConfigManager.getInstance().saveConfigure(ConfigManager.CONFIG_LIANLIANKAN_GAME_MUSIC_ON, isBGMusicMute?"0":"1");
-		ConfigManager.getInstance().saveConfigure(ConfigManager.CONFIG_LIANLIANKAN_GAME_SFX_ON, isSFXMute?"0":"1");
+		ConfigManager.getInstance().saveConfigure(ConfigManager.CONFIG_LIANLIANKAN_GAME_MUSIC_ON, isBGMusicMute()?"0":"1");
+		ConfigManager.getInstance().saveConfigure(ConfigManager.CONFIG_LIANLIANKAN_GAME_SFX_ON, isSFXMute()?"0":"1");
 	}
 	
 
-	private void loadConfiguration() {
+	@Override
+	protected void loadConfiguration() {
 		String levelStr = ConfigManager.getInstance().getConfigure(ConfigManager.CONFIG_LIANLIANKAN_GAME_LEVEL);
 		if(levelStr == null || levelStr.equals("")){
 			level = LEVEL_NORMAL;
@@ -496,31 +439,28 @@ public class LianLianKanGameActivity extends Activity implements IGameListener, 
 		
 		String musicOnStr = ConfigManager.getInstance().getConfigure(ConfigManager.CONFIG_LIANLIANKAN_GAME_MUSIC_ON);
 		if(musicOnStr != null && (musicOnStr.equals("1")||musicOnStr.equalsIgnoreCase("true"))){
-			isBGMusicMute = false;
+			setBGMusicMute(false);
 		}else{
-			isBGMusicMute = true;
+			setBGMusicMute(true);
 		}
 		
 		String sfxOnStr = ConfigManager.getInstance().getConfigure(ConfigManager.CONFIG_LIANLIANKAN_GAME_SFX_ON);
 		if(sfxOnStr != null && (sfxOnStr.equals("1")||sfxOnStr.equalsIgnoreCase("true"))){
-			isSFXMute = false;
+			setSFXMute(false);
 		}else{
-			isSFXMute = true;
+			setSFXMute(true);
 		}
 	}
 	
-	private boolean startGame(){
-		lianliankan = new LianLianKan(profile.getRowNumber(), profile.getColumnNumber(), profile.getSameImageCount(), profile.getMaxHintNumber(), profile.getMaxTime(), profile.getBonusTime());
+	@Override
+	protected AbstractGame createGameInstance() {
+		return new LianLianKan(profile.getRowNumber(), profile.getColumnNumber(), profile.getSameImageCount(), profile.getMaxHintNumber(), profile.getMaxTime(), profile.getBonusTime());
+	}
+
+	@Override
+	protected boolean initGame() {
+		LianLianKan lianliankan = (LianLianKan) game;
 		
-		try {
-			lianliankan.initGame();
-		} catch (GameException e) {
-			e.printStackTrace();
-			Toast.makeText(this, "Init Game Failed:" + e.getMessage(), Toast.LENGTH_SHORT).show();
-			return false;
-		}
-		
-		lianliankan.addListener(this);
 		lianliankan.addGameTimerListener(this);
 		lianliankan.addCustomizedListener(this);
 		
@@ -528,69 +468,7 @@ public class LianLianKanGameActivity extends Activity implements IGameListener, 
 		
 		timeUPPlayed = false;
 		
-		lianliankan.start();
-		
 		return true;
-	}
-
-	protected void restartGame() {
-		if(lianliankan.isStarted()){
-			lianliankan.stop();
-		}
-		startGame();
-	}
-	
-	protected void exitGame(){
-		if(lianliankan.isStarted()){
-			lianliankan.stop();
-		}
-		this.finish();
-	}
-	
-	private void playSFX(int id){
-		if(!isSFXMute){
-			soundPlayer.play(id, 0);
-		}
-	}
-	
-	private void startPlayBGMusic(){
-		if(!isBGMusicMute){
-			Intent intent = new Intent();
-			intent.setClass(this, BGMusicService.class);
-			intent.putExtra(BGMusicService.BGM_ID, R.raw.music_bg_lianliankan);
-			ComponentName name = startService(intent);
-			bindService(intent, conn, Context.BIND_AUTO_CREATE);
-		}
-	}
-	
-	private void stopPlayBGMusic(){
-		if(musicService != null){
-			Intent intent = new Intent();
-			intent.setClass(this, BGMusicService.class);
-			unbindService(conn);
-			stopService(intent);
-			musicService = null;
-		}
-	}
-	
-	private void pauseBGMusic(){
-		if(musicService!=null){
-			musicService.pauseMusic();
-		}
-	}
-	
-	private void resumeBGMusic(){
-		if(!isBGMusicMute){
-			if(musicService == null){
-				startPlayBGMusic();
-			}else{
-				musicService.resumeMusic();
-			}
-		}else{
-			if(musicService != null){
-				stopPlayBGMusic();
-			}
-		}
 	}
 
 	@Override
@@ -642,7 +520,7 @@ public class LianLianKanGameActivity extends Activity implements IGameListener, 
 	
 	@Override
 	public void onFinished(AbstractGame game) {
-		stopPlayBGMusic();
+		super.onFinished(game);
 		
 		controlButton.setEnabled(false);
 		hintButton.setEnabled(false);
@@ -653,7 +531,8 @@ public class LianLianKanGameActivity extends Activity implements IGameListener, 
 
 	@Override
 	public void onPaused(AbstractGame game) {
-		pauseBGMusic();
+		super.onPaused(game);
+		
 		controlButton.setBackgroundResource(R.layout.selector_btn_resume);
 		controlText.setText(resources.getString(R.string.game_lianliankan_lable_resume));
 		hintButton.setEnabled(false);
@@ -662,9 +541,9 @@ public class LianLianKanGameActivity extends Activity implements IGameListener, 
 
 	@Override
 	public void onResumed(AbstractGame game) {
+		super.onResumed(game);
 		
-		resumeBGMusic();
-		if(lianliankan.getHintNumber() == -1 ||lianliankan.getHintNumber()>0){
+		if(((LianLianKan)game).getHintNumber() == -1 ||((LianLianKan)game).getHintNumber() > 0){
 			hintButton.setEnabled(true);
 		}
 		
@@ -686,12 +565,13 @@ public class LianLianKanGameActivity extends Activity implements IGameListener, 
 		hintNumberText.setText(resources.getString(R.string.game_lianliankan_lable_hint_number) + "(" + (profile.getMaxHintNumber() == -1?"-":Integer.toString(profile.getMaxHintNumber())) +")");
 		gameMapView.invalidate();
 		
-		startPlayBGMusic();
+		super.onStarted(game);
 	}
 	
 	@Override
 	public void onStopped(AbstractGame game) {
-		stopPlayBGMusic();
+		super.onStopped(game);
+		
 		controlButton.setEnabled(false);
 		hintButton.setEnabled(false);
 		gameMapView.invalidate();
@@ -700,12 +580,14 @@ public class LianLianKanGameActivity extends Activity implements IGameListener, 
 	
 	@Override
 	public void onGameOver(AbstractGame game) {
-		stopPlayBGMusic();
+		super.onGameOver(game);
+		
 		controlButton.setEnabled(false);
 		hintButton.setEnabled(false);
 		gameMapView.invalidate();
 		playSFX(SFX_GAMEOVER);
 		showGameOverDialog();
 	}
+
 	
 }

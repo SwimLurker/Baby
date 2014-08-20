@@ -50,7 +50,7 @@ public class BGMusicService extends Service implements MediaPlayer.OnCompletionL
 			}
 		}
 		if(player == null){
-			player = MediaPlayer.create(this, R.raw.music_bg_lianliankan);
+			player = MediaPlayer.create(this, R.raw.music_bg);
 			player.setLooping(true);
 			player.setOnCompletionListener(this);
 		}

@@ -8,6 +8,7 @@ import java.util.Stack;
 import org.slstudio.baby.config.ConfigManager;
 import org.slstudio.baby.data.PhotoManager;
 import org.slstudio.baby.game.AbstractGame;
+import org.slstudio.baby.game.GameActivity;
 import org.slstudio.baby.game.GameException;
 import org.slstudio.baby.game.IGameListener;
 import org.slstudio.baby.game.IGameTimerListener;
@@ -60,7 +61,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.ToggleButton;
 
-public class PuzzleGameActivity extends Activity implements IGameListener, IGameTimerListener, IPuzzleGameListener{
+public class PuzzleGameActivity extends GameActivity implements IGameTimerListener, IPuzzleGameListener{
 	
 	public static final int MSG_RESOLVER_UPDATE = 10;
 	
@@ -91,29 +92,7 @@ public class PuzzleGameActivity extends Activity implements IGameListener, IGame
 	private ImageView fullPicIV = null;
 	private ImageButton closeFullPicIV = null;
 	
-	private Puzzle puzzle = null;
-	
-	private SoundPlayer soundPlayer = null;
-	
-	private BGMusicService musicService = null;
-	
-	private boolean isSFXMute = true;
-	private boolean isBGMusicMute = true;
-	
 	private boolean timeUPPlayed = false;
-	
-	private ServiceConnection conn = new ServiceConnection(){
-		@Override
-		public void onServiceDisconnected(ComponentName name){
-			musicService = null;
-		}
-		
-		@Override
-		public void onServiceConnected(ComponentName name, IBinder binder){
-			musicService = ((BGMusicService.BGMusicBinder)binder).getService();
-		}
-	};
-	
 	
 	private Bitmap puzzlePicture = null;
 	
@@ -124,8 +103,11 @@ public class PuzzleGameActivity extends Activity implements IGameListener, IGame
 	private int resolveSteps = 0;
 	
 	private Handler resolverHandler = new Handler(){
+		Puzzle puzzle = (Puzzle)game;
+		
 		@Override
 		public void handleMessage(Message msg){
+			
 			if(puzzle.isStarted()){
 				switch (msg.what){
 				case MSG_RESOLVER_UPDATE:
@@ -189,9 +171,6 @@ public class PuzzleGameActivity extends Activity implements IGameListener, IGame
 		
 		resources = getResources();
 		
-		loadConfiguration();
-		
-		initSFXandMusic();
 		
 		puzzleView = (PuzzleView)findViewById(R.id.game_puzzle_layout);
 		controlBtn = (ImageButton)findViewById(R.id.game_puzzle_imagebtn_control);
@@ -211,7 +190,7 @@ public class PuzzleGameActivity extends Activity implements IGameListener, IGame
 
 			@Override
 			public void onClick(View v) {
-				if(puzzle!=null){
+				if(game!=null){
 					showPuzzlePicture();
 				}
 			}
@@ -219,7 +198,7 @@ public class PuzzleGameActivity extends Activity implements IGameListener, IGame
 			private void showPuzzlePicture() {
 				puzzleView.setVisibility(View.GONE);
 				
-				fullPicIV.setImageBitmap(puzzle.getOriginalBitmap());
+				fullPicIV.setImageBitmap(((Puzzle)game).getOriginalBitmap());
 				fullPicLayout.setVisibility(View.VISIBLE);
 				
 				final AnimationSet as = new AnimationSet(false);
@@ -258,12 +237,12 @@ public class PuzzleGameActivity extends Activity implements IGameListener, IGame
 			@Override
 			public void onClick(View v) {
 				playSFX(SFX_PRESSKEY);
-				if(puzzle!=null && puzzle.isStarted()){
-					if(puzzle.isPaused()){
-						puzzle.resume();
+				if(game!=null && game.isStarted()){
+					if(game.isPaused()){
+						game.resume();
 						
 					}else{
-						puzzle.pause();
+						game.pause();
 					}
 				}
 			}
@@ -284,25 +263,7 @@ public class PuzzleGameActivity extends Activity implements IGameListener, IGame
 		
 	}
 	
-	
-	@Override
-    public void onConfigurationChanged(Configuration newConfig) {
-        super.onConfigurationChanged(newConfig);
-	}
-	
-	@Override
-	public boolean onPrepareOptionsMenu(Menu menu){
-		if(!puzzle.isPaused()){
-			puzzle.pause();
-		}
-		return true;
-	}
-	
-	@Override
-	public void onOptionsMenuClosed(Menu menu){
-		super.onOptionsMenuClosed(menu);
-	}
-	
+
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
 		// Inflate the menu; this adds items to the action bar if it is present.
@@ -338,7 +299,7 @@ public class PuzzleGameActivity extends Activity implements IGameListener, IGame
 			showSettingsDialog();
 			break;
 		case R.id.game_puzzle_menuitem_resolve:
-			if(puzzle!=null && puzzle.isStarted()){
+			if(game!=null && game.isStarted()){
 				new AlertDialog.Builder(this)
 					.setIcon(R.drawable.ic_launcher)
 					.setTitle(resources.getString(R.string.game_puzzle_info_resolveconfirm))
@@ -387,35 +348,7 @@ public class PuzzleGameActivity extends Activity implements IGameListener, IGame
 		return true;
 	}
 	
-	@Override
-	protected void onDestroy(){
-		if(musicService != null){
-			stopPlayBGMusic();
-		}
-		super.onDestroy();
-	}
-	
-	@Override
-	protected void onPause(){
-		if(musicService != null){
-			pauseBGMusic();
-		}
-		super.onPause();
-	}
-	
-	@Override
-	protected void onResume(){
-		super.onResume();
-		if(musicService != null){
-			resumeBGMusic();
-		}
-	}
-	
-	@Override
-	public void onBackPressed() {
-		exitGame();
-    }
-	
+
 	private void showSettingsDialog() {
 		final View dialogView = getLayoutInflater().inflate(R.layout.dialog_puzzle_gamesettings, null);
 		
@@ -449,14 +382,14 @@ public class PuzzleGameActivity extends Activity implements IGameListener, IGame
     	
 		
 		ToggleButton musicTB = (ToggleButton) dialogView.findViewById(R.id.game_settings_music);
-		if(isBGMusicMute){
+		if(isBGMusicMute()){
 			musicTB.setChecked(false);
 		}else{
 			musicTB.setChecked(true);
 		}
 		
 		ToggleButton sfxTB = (ToggleButton) dialogView.findViewById(R.id.game_settings_sfx);
-		if(isSFXMute){
+		if(isSFXMute()){
 			sfxTB.setChecked(false);
 		}else{
 			sfxTB.setChecked(true);
@@ -503,10 +436,10 @@ public class PuzzleGameActivity extends Activity implements IGameListener, IGame
 					}
 					
 					ToggleButton musicTB = (ToggleButton) dialogView.findViewById(R.id.game_settings_music);
-					isBGMusicMute = !musicTB.isChecked();
+					setBGMusicMute(!musicTB.isChecked());
 					
 					ToggleButton sfxTB = (ToggleButton) dialogView.findViewById(R.id.game_settings_sfx);
-					isSFXMute = !sfxTB.isChecked();
+					setSFXMute(!sfxTB.isChecked());
 					
 					saveConfiguration();
 					
@@ -594,8 +527,8 @@ public class PuzzleGameActivity extends Activity implements IGameListener, IGame
         	.show();
 	}
 	
-	
-	private void saveConfiguration() {
+	@Override
+	protected void saveConfiguration() {
 		switch(level){
 		case LEVEL_EASY:
 			ConfigManager.getInstance().saveConfigure(ConfigManager.CONFIG_PUZZLE_GAME_LEVEL, "easy");
@@ -611,12 +544,13 @@ public class PuzzleGameActivity extends Activity implements IGameListener, IGame
 			break;
 		}
 		
-		ConfigManager.getInstance().saveConfigure(ConfigManager.CONFIG_PUZZLE_GAME_MUSIC_ON, isBGMusicMute?"0":"1");
-		ConfigManager.getInstance().saveConfigure(ConfigManager.CONFIG_PUZZLE_GAME_SFX_ON, isSFXMute?"0":"1");
+		ConfigManager.getInstance().saveConfigure(ConfigManager.CONFIG_PUZZLE_GAME_MUSIC_ON, isBGMusicMute()?"0":"1");
+		ConfigManager.getInstance().saveConfigure(ConfigManager.CONFIG_PUZZLE_GAME_SFX_ON, isSFXMute()?"0":"1");
 	}
 	
 
-	private void loadConfiguration() {
+	@Override
+	protected void loadConfiguration() {
 		String levelStr = ConfigManager.getInstance().getConfigure(ConfigManager.CONFIG_PUZZLE_GAME_LEVEL);
 		if(levelStr == null || levelStr.equals("")){
 			level = LEVEL_NORMAL;
@@ -637,34 +571,46 @@ public class PuzzleGameActivity extends Activity implements IGameListener, IGame
 		
 		String musicOnStr = ConfigManager.getInstance().getConfigure(ConfigManager.CONFIG_PUZZLE_GAME_MUSIC_ON);
 		if(musicOnStr != null && (musicOnStr.equals("1")||musicOnStr.equalsIgnoreCase("true"))){
-			isBGMusicMute = false;
+			setBGMusicMute(false);
 		}else{
-			isBGMusicMute = true;
+			setBGMusicMute(true);
 		}
 		
 		String sfxOnStr = ConfigManager.getInstance().getConfigure(ConfigManager.CONFIG_PUZZLE_GAME_SFX_ON);
 		if(sfxOnStr != null && (sfxOnStr.equals("1")||sfxOnStr.equalsIgnoreCase("true"))){
-			isSFXMute = false;
+			setSFXMute(false);
 		}else{
-			isSFXMute = true;
+			setSFXMute(true);
 		}
 	}
 	
+	@Override
+	protected int getBGMResourceID() {
+		return R.raw.music_bg_puzzle;
+	}
 	
-	private boolean startGame(){
-		puzzlePicture = getPuzzlePicuture();
+	@Override
+	protected void loadSFX() {
+		soundPlayer.load(R.raw.key, SFX_PRESSKEY);
+		soundPlayer.load(R.raw.gameover, SFX_GAMEOVER);
+		soundPlayer.load(R.raw.gamestart, SFX_GAMESTART);
+		soundPlayer.load(R.raw.gamefinish, SFX_GAMEFINISH);
+		soundPlayer.load(R.raw.blockremove, SFX_PIECEMOVE);
+		soundPlayer.load(R.raw.timeup, SFX_TIMEUP);
 		
-		puzzle = new Puzzle(puzzlePicture, profile.getDimension(), profile.getMaxTime());
+	}
+	
+	@Override
+	protected AbstractGame createGameInstance() {
+		puzzlePicture = getPuzzlePicuture();		
+		return new Puzzle(puzzlePicture, profile.getDimension(), profile.getMaxTime());
+	}
+	
+	@Override
+	protected boolean initGame(){
 		
-		try {
-			puzzle.initGame();
-		} catch (GameException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-			Toast.makeText(this, "Init game failed", Toast.LENGTH_SHORT).show();
-		}
+		Puzzle puzzle = (Puzzle)game;
 		
-		puzzle.addListener(this);
 		puzzle.addGameTimerListener(this);
 		puzzle.addCustomizedListener(this);
 		
@@ -674,96 +620,12 @@ public class PuzzleGameActivity extends Activity implements IGameListener, IGame
 		
 		enableInput();
 		
-		puzzle.start();
-		
 		return true;
 	}
-
-	protected void restartGame() {
-		if(puzzle.isStarted()){
-			puzzle.stop();
-		}
-		startGame();
-	}
 	
-	protected void exitGame(){
-		if(puzzle.isStarted()){
-			puzzle.stop();
-		}
-		this.finish();
-	}
-	
-	private void initSFXandMusic() {
-		soundPlayer = new SoundPlayer(this);
-		soundPlayer.load(R.raw.key, SFX_PRESSKEY);
-		soundPlayer.load(R.raw.gameover, SFX_GAMEOVER);
-		soundPlayer.load(R.raw.gamestart, SFX_GAMESTART);
-		soundPlayer.load(R.raw.gamefinish, SFX_GAMEFINISH);
-		soundPlayer.load(R.raw.blockremove, SFX_PIECEMOVE);
-		soundPlayer.load(R.raw.timeup, SFX_TIMEUP);
-	}
-	
-	private void playSFX(int id){
-		if(!isSFXMute){
-			soundPlayer.play(id, 0);
-		}
-	}
-	
-	private void startPlayBGMusic(){
-		if(!isBGMusicMute){
-			Intent intent = new Intent();
-			intent.setClass(this, BGMusicService.class);
-			intent.putExtra(BGMusicService.BGM_ID, R.raw.music_bg_puzzle);
-			ComponentName name = startService(intent);
-			bindService(intent, conn, Context.BIND_AUTO_CREATE);
-		}
-	}
-	
-	private void stopPlayBGMusic(){
-		if(musicService != null){
-			Intent intent = new Intent();
-			intent.setClass(this, BGMusicService.class);
-			unbindService(conn);
-			stopService(intent);
-			musicService = null;
-		}
-	}
-	
-	private void pauseBGMusic(){
-		if(musicService!=null){
-			musicService.pauseMusic();
-		}
-	}
-	
-	private void resumeBGMusic(){
-		if(!isBGMusicMute){
-			if(musicService == null){
-				startPlayBGMusic();
-			}else{
-				musicService.resumeMusic();
-			}
-		}else{
-			if(musicService != null){
-				stopPlayBGMusic();
-			}
-		}
-	}
-
-	private Bitmap getPuzzlePicuture() {
-		List<String> photoList = PhotoManager.getInstance().getAllPhotos();
-		
-		String filename = photoList.get(random.nextInt(photoList.size()));
-		if(filename != null){
-			return BitmapUtil.getBitmapFromFile(filename);
-		}
-		return null;
-		
-	}
-
-
 	@Override
 	public void onFinished(AbstractGame game) {
-		stopPlayBGMusic();
+		super.onFinished(game);
 		controlBtn.setEnabled(false);
 		fullPicBtn.setEnabled(false);
 		puzzleView.removeAllViews();
@@ -775,7 +637,7 @@ public class PuzzleGameActivity extends Activity implements IGameListener, IGame
 
 	@Override
 	public void onPaused(AbstractGame game) {
-		pauseBGMusic();
+		super.onPaused(game);
 		fullPicBtn.setEnabled(false);
 		controlBtn.setBackgroundResource(R.layout.selector_btn_resume);
 		controlTV.setText(resources.getString(R.string.game_puzzle_lable_resume));
@@ -785,7 +647,7 @@ public class PuzzleGameActivity extends Activity implements IGameListener, IGame
 
 	@Override
 	public void onResumed(AbstractGame game) {
-		resumeBGMusic();
+		super.onResumed(game);
 		fullPicBtn.setEnabled(true);
 		controlBtn.setBackgroundResource(R.layout.selector_btn_pause);
 		controlTV.setText(resources.getString(R.string.game_puzzle_lable_pause));
@@ -803,16 +665,16 @@ public class PuzzleGameActivity extends Activity implements IGameListener, IGame
 		controlBtn.setBackgroundResource(R.layout.selector_btn_pause);
 		controlTV.setText(resources.getString(R.string.game_puzzle_lable_pause));
 		fullPicBtn.setEnabled(true);
-		moveCountTV.setText(resources.getString(R.string.game_puzzle_lable_movecount) +":" + puzzle.getMoveCount() );
+		moveCountTV.setText(resources.getString(R.string.game_puzzle_lable_movecount) +":" + ((Puzzle)game).getMoveCount() );
 		puzzleView.invalidate();
 		
-		startPlayBGMusic();
+		super.onStarted(game);
 	}
 
 
 	@Override
 	public void onStopped(AbstractGame game) {
-		stopPlayBGMusic();
+		super.onStopped(game);
 		
 		controlBtn.setEnabled(false);
 		fullPicBtn.setEnabled(false);
@@ -823,7 +685,8 @@ public class PuzzleGameActivity extends Activity implements IGameListener, IGame
 
 	@Override
 	public void onGameOver(AbstractGame game) {
-		stopPlayBGMusic();
+		super.onGameOver(game);
+		
 		controlBtn.setEnabled(false);
 		fullPicBtn.setEnabled(false);
 		puzzleView.removeAllViews();
@@ -846,11 +709,23 @@ public class PuzzleGameActivity extends Activity implements IGameListener, IGame
 		}
 		
 	}
+	
 	@Override
 	public void onPieceMoved(Puzzle puzzle, int from, int to) {
 		puzzleView.movePieces(from, to);
 		puzzleView.invalidate();
 		moveCountTV.setText(resources.getString(R.string.game_puzzle_lable_movecount) +":" + puzzle.getMoveCount());
+	}
+	
+	private Bitmap getPuzzlePicuture() {
+		List<String> photoList = PhotoManager.getInstance().getAllPhotos();
+		
+		String filename = photoList.get(random.nextInt(photoList.size()));
+		if(filename != null){
+			return BitmapUtil.getBitmapFromFile(filename);
+		}
+		return null;
+		
 	}
 	
 	private void resolvePuzzle() {
@@ -879,7 +754,7 @@ public class PuzzleGameActivity extends Activity implements IGameListener, IGame
     	
     	task = new PuzzleResolverAsyncTask(dialog);
     	
-		task.execute(new Puzzle[]{puzzle});
+		task.execute(new Puzzle[]{(Puzzle)game});
 	}
 	
 	private void enableInput() {
@@ -905,7 +780,7 @@ public class PuzzleGameActivity extends Activity implements IGameListener, IGame
 		protected List<DIRECTION> doInBackground(Puzzle... params) {
 			resolver = new PuzzleResolver(params[0]);
 			List<DIRECTION> result = null;
-			while(puzzle.isStarted()){
+			while(game.isStarted()){
 				try{
 					result = resolver.resolvePuzzle(this);
 					break;
@@ -929,8 +804,8 @@ public class PuzzleGameActivity extends Activity implements IGameListener, IGame
 			
 			progressDialog.dismiss();
 			
-			if(puzzle!=null &&puzzle.isStarted() && puzzle.isPaused()){
-				puzzle.resume();
+			if(game!=null && game.isStarted() && game.isPaused()){
+				game.resume();
 			}
 			if(result!=null && !task.isCancelled()){
 				resolveMoves = new Stack<DIRECTION>();
@@ -964,4 +839,7 @@ public class PuzzleGameActivity extends Activity implements IGameListener, IGame
 			resolver.setCancelled(true);
 		}
 	}
+
+	
+
 }
