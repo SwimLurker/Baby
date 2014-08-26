@@ -119,9 +119,9 @@ public class PuzzleView extends AbsoluteLayout{
 			if(puzzle.isPaused() || puzzle.isGameOver()){
 				String infoText = null;	
 				if(puzzle.isPaused()){
-					infoText = context.getResources().getString(R.string.game_puzzle_info_gamepaused);
+					infoText = context.getResources().getString(R.string.game_info_gamepaused);
 				}else if(puzzle.isGameOver()){
-					infoText = context.getResources().getString(R.string.game_puzzle_info_gameover);
+					infoText = context.getResources().getString(R.string.game_info_gameover);
 				}
 				drawInfoBox(canvas, infoText);
 			}

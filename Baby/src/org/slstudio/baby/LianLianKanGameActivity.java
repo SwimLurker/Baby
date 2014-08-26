@@ -1,46 +1,30 @@
 package org.slstudio.baby;
 
 
-import java.lang.reflect.Field;
-
 import org.slstudio.baby.config.ConfigManager;
 import org.slstudio.baby.game.lianliankan.Block;
 import org.slstudio.baby.game.AbstractGame;
 import org.slstudio.baby.game.GameActivity;
-import org.slstudio.baby.game.GameException;
-import org.slstudio.baby.game.IGameListener;
+import org.slstudio.baby.game.IGameProfile;
+import org.slstudio.baby.game.IGameProfileFactory;
 import org.slstudio.baby.game.IGameTimerListener;
 import org.slstudio.baby.game.TimeableGame;
 import org.slstudio.baby.game.lianliankan.ILianLianKanListener;
 import org.slstudio.baby.game.lianliankan.LianLianKan;
 import org.slstudio.baby.game.lianliankan.LianLianKanProfile;
+import org.slstudio.baby.game.lianliankan.LianLianKanProfileFactory;
 import org.slstudio.baby.game.lianliankan.Path;
-import org.slstudio.baby.game.service.BGMusicService;
-import org.slstudio.baby.game.util.SoundPlayer;
 import org.slstudio.baby.game.lianliankan.ui.LianLianKanMapView;
 
-import android.app.Activity;
-import android.app.AlertDialog;
-import android.app.Dialog;
-import android.content.ComponentName;
-import android.content.Context;
-import android.content.DialogInterface;
-import android.content.Intent;
-import android.content.ServiceConnection;
 import android.content.res.Resources;
 import android.os.Bundle;
-import android.os.IBinder;
-import android.view.Menu;
-import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.Window;
 import android.widget.ImageButton;
 import android.widget.ProgressBar;
-import android.widget.RadioButton;
 import android.widget.TextView;
 import android.widget.Toast;
-import android.widget.ToggleButton;
 
 public class LianLianKanGameActivity extends GameActivity implements IGameTimerListener, ILianLianKanListener{
 	public static final int SFX_PRESSKEY = 1;
@@ -51,14 +35,6 @@ public class LianLianKanGameActivity extends GameActivity implements IGameTimerL
 	public static final int SFX_BLOCKREMOVE = 6;
 	public static final int SFX_BLOCKSELECTED = 7;
 	public static final int SFX_TIMEUP = 8;
-	
-	public static final int LEVEL_EASY = 1;
-	public static final int LEVEL_NORMAL = 2;
-	public static final int LEVEL_HARD = 3;
-	
-	
-	private int level = LEVEL_EASY;
-	private LianLianKanProfile profile = null;
 	
 	
 	private Resources resources = null;
@@ -98,7 +74,7 @@ public class LianLianKanGameActivity extends GameActivity implements IGameTimerL
 		timeValueText=(TextView)findViewById(R.id.game_lianliankan_textview_counter);
 		
 		controlText.setText(resources.getString(R.string.game_lianliankan_lable_pause));
-		hintNumberText.setText(resources.getString(R.string.game_lianliankan_lable_hint_number) + "(" + (profile.getMaxHintNumber() == -1?"-":Integer.toString(profile.getMaxHintNumber())) +")");
+		hintNumberText.setText(resources.getString(R.string.game_lianliankan_lable_hint_number) + "(" + (((LianLianKanProfile)profile).getMaxHintNumber() == -1?"-":Integer.toString(((LianLianKanProfile)profile).getMaxHintNumber())) +")");
 		
 		controlButton.setOnClickListener(new OnClickListener(){
 
@@ -156,255 +132,18 @@ public class LianLianKanGameActivity extends GameActivity implements IGameTimerL
 		return R.raw.music_bg;
 	}
 	
-	@Override
-	public boolean onCreateOptionsMenu(Menu menu) {
-		// Inflate the menu; this adds items to the action bar if it is present.
-		getMenuInflater().inflate(R.menu.lianliankan, menu);
-		return true;
-	}
-
-	@Override
-	public boolean onOptionsItemSelected(MenuItem item) {
-		switch (item.getItemId()) {
-		case R.id.game_lianliankan_menuitem_restart:
-			new AlertDialog.Builder(this)
-			.setIcon(R.drawable.ic_launcher)
-			.setTitle(resources.getString(R.string.game_lianliankan_info_restartconfirm))
-			.setPositiveButton(resources.getString(R.string.game_lianliankan_lable_okbtn),
-					new DialogInterface.OnClickListener() {
-						@Override
-						public void onClick(DialogInterface dialog,	int which) {
-							restartGame();
-						}
-					})
-			.setNegativeButton(resources.getString(R.string.game_lianliankan_lable_cancelbtn),
-					new DialogInterface.OnClickListener() {
-
-						@Override
-						public void onClick(DialogInterface dialog,
-								int which) {
-							dialog.dismiss();
-						}
-					}).show();
-			break;
-		case R.id.game_lianliankan_menuitem_settings:
-			showSettingsDialog();
-			break;
-		case R.id.game_lianliankan_menuitem_quit:
-			new AlertDialog.Builder(this)
-			.setIcon(R.drawable.ic_launcher)
-			.setTitle(resources.getString(R.string.game_lianliankan_info_quitconfirm))
-			.setPositiveButton(resources.getString(R.string.game_lianliankan_lable_okbtn),
-					new DialogInterface.OnClickListener() {
-						@Override
-						public void onClick(DialogInterface dialog,	int which) {
-							exitGame();
-						}
-					})
-			.setNegativeButton(resources.getString(R.string.game_lianliankan_lable_cancelbtn),
-					new DialogInterface.OnClickListener() {
-
-						@Override
-						public void onClick(DialogInterface dialog,
-								int which) {
-							dialog.dismiss();
-						}
-					}).show();
-			break;
-		}
-		return true;
-	}
-
-
-	private void showSettingsDialog() {
-		final View dialogView = getLayoutInflater().inflate(R.layout.dialog_lianliankan_gamesettings, null);
-		
-		RadioButton easyRB = (RadioButton)dialogView.findViewById(R.id.game_settings_level_easy); 
-		RadioButton normalRB = (RadioButton)dialogView.findViewById(R.id.game_settings_level_normal); 
-		RadioButton hardRB = (RadioButton)dialogView.findViewById(R.id.game_settings_level_hard);
-		
-		
-		switch(level){
-		case LEVEL_EASY:
-			easyRB.setChecked(true);
-			normalRB.setChecked(false);
-			hardRB.setChecked(false);
-			break;
-		case LEVEL_NORMAL:
-			easyRB.setChecked(false);
-			normalRB.setChecked(true);
-			hardRB.setChecked(false);
-			break;
-		case LEVEL_HARD:
-			easyRB.setChecked(false);
-			normalRB.setChecked(false);
-			hardRB.setChecked(true);
-			break;
-		default:
-			easyRB.setChecked(false);
-			normalRB.setChecked(true);
-			hardRB.setChecked(false);
-			break;
-		}
-    	
-		
-		ToggleButton musicTB = (ToggleButton) dialogView.findViewById(R.id.game_settings_music);
-		if(isBGMusicMute()){
-			musicTB.setChecked(false);
-		}else{
-			musicTB.setChecked(true);
-		}
-		
-		ToggleButton sfxTB = (ToggleButton) dialogView.findViewById(R.id.game_settings_sfx);
-		if(isSFXMute()){
-			sfxTB.setChecked(false);
-		}else{
-			sfxTB.setChecked(true);
-		}
-		
-    	Dialog dialog = new AlertDialog.Builder(this)
-        	.setIcon(R.drawable.ic_launcher)
-        	.setTitle(resources.getString(R.string.game_lianliankan_title_settings))
-        	.setView(dialogView)
-        	.setPositiveButton(resources.getString(R.string.game_lianliankan_lable_okbtn),new DialogInterface.OnClickListener() {
-				@Override
-				public void onClick(DialogInterface dialog, int which) {
-					try{
-						Field field = dialog.getClass().getSuperclass().getDeclaredField("mShowing");
-						field.setAccessible(true);  
-			            field.set(dialog, false);
-			        }catch(Exception e) {
-			        	e.printStackTrace();  
-			        }
-					
-					boolean needRestartEffect = false;
-					
-					RadioButton easyRB = (RadioButton)dialogView.findViewById(R.id.game_settings_level_easy); 
-					RadioButton normalRB = (RadioButton)dialogView.findViewById(R.id.game_settings_level_normal); 
-					RadioButton hardRB = (RadioButton)dialogView.findViewById(R.id.game_settings_level_hard);
-					
-					int newLevel = LEVEL_NORMAL;
-					LianLianKanProfile newProfile = LianLianKanProfile.NORMAL;
-					if(easyRB.isChecked()){
-						newLevel = LEVEL_EASY;
-						newProfile = LianLianKanProfile.EASY;
-					}else if(normalRB.isChecked()){
-						newLevel = LEVEL_NORMAL;
-						newProfile = LianLianKanProfile.NORMAL;
-					}else if(hardRB.isChecked()){
-						newLevel = LEVEL_HARD;
-						newProfile = LianLianKanProfile.HARD;
-					}
-					
-					if(newLevel != level){
-						level = newLevel;
-						profile = newProfile;
-						needRestartEffect = true;
-					}
-					
-					ToggleButton musicTB = (ToggleButton) dialogView.findViewById(R.id.game_settings_music);
-					setBGMusicMute(!musicTB.isChecked());
-					
-					ToggleButton sfxTB = (ToggleButton) dialogView.findViewById(R.id.game_settings_sfx);
-					setSFXMute(!sfxTB.isChecked());
-					
-					saveConfiguration();
-					
-					if(needRestartEffect){
-					
-						new AlertDialog.Builder(LianLianKanGameActivity.this)
-							.setIcon(R.drawable.ic_launcher)
-							.setTitle(resources.getString(R.string.game_lianliankan_info_settingschangeconfirm))
-							.setPositiveButton(resources.getString(R.string.game_lianliankan_lable_yesbtn), new DialogInterface.OnClickListener(){
-								
-								@Override
-								public void onClick(DialogInterface dialog, int which) {
-									restartGame();
-									
-								}
-							})
-							.setNegativeButton(resources.getString(R.string.game_lianliankan_lable_nobtn), new DialogInterface.OnClickListener() {
-								
-								@Override
-								public void onClick(DialogInterface dialog, int which) {
-									
-								}
-							})
-							.show();
-					}
-					
-					try{
-						Field field = dialog.getClass().getSuperclass().getDeclaredField("mShowing");
-						field.setAccessible(true);  
-			            field.set(dialog, true);
-			        }catch(Exception e) {
-			        	e.printStackTrace();  
-			        }
-				}
-
-			})
-        	.setNegativeButton(resources.getString(R.string.game_lianliankan_lable_exitbtn), new DialogInterface.OnClickListener() {
-				@Override
-				public void onClick(DialogInterface dialog, int which) {
-				}
-			})
-        	.show();
-	}
-
-	protected void showSucceedDialog() {
-		final View dialogView = getLayoutInflater().inflate(R.layout.dialog_lianliankan_gamesucceed, null);
-    	
-    	Dialog dialog = new AlertDialog.Builder(this)
-        	.setIcon(R.drawable.ic_launcher)
-        	.setTitle(resources.getString(R.string.game_lianliankan_title_dialog))
-        	.setView(dialogView)
-        	.setPositiveButton(resources.getString(R.string.game_lianliankan_lable_restartbtn),new DialogInterface.OnClickListener() {
-				@Override
-				public void onClick(DialogInterface dialog, int which) {
-					restartGame();
-				}
-			})
-        	.setNegativeButton(resources.getString(R.string.game_lianliankan_lable_exitbtn), new DialogInterface.OnClickListener() {
-				@Override
-				public void onClick(DialogInterface dialog, int which) {
-					exitGame();
-				}
-			})
-        	.show();
-	}
 	
-	protected void showGameOverDialog() {
-		final View dialogView = getLayoutInflater().inflate(R.layout.dialog_lianliankan_gameover, null);
-    	
-    	Dialog dialog = new AlertDialog.Builder(this)
-        	.setIcon(R.drawable.ic_launcher)
-        	.setTitle(resources.getString(R.string.game_lianliankan_title_dialog))
-        	.setView(dialogView)
-        	.setPositiveButton(resources.getString(R.string.game_lianliankan_lable_restartbtn),new DialogInterface.OnClickListener() {
-				@Override
-				public void onClick(DialogInterface dialog, int which) {
-					restartGame();
-				}
-			})
-        	.setNegativeButton(resources.getString(R.string.game_lianliankan_lable_exitbtn), new DialogInterface.OnClickListener() {
-				@Override
-				public void onClick(DialogInterface dialog, int which) {
-					exitGame();
-				}
-			})
-        	.show();
-	}
 	
 	@Override
 	protected void saveConfiguration() {
 		switch(level){
-		case LEVEL_EASY:
+		case IGameProfile.LEVEL_EASY:
 			ConfigManager.getInstance().saveConfigure(ConfigManager.CONFIG_LIANLIANKAN_GAME_LEVEL, "easy");
 			break;
-		case LEVEL_NORMAL:
+		case IGameProfile.LEVEL_NORMAL:
 			ConfigManager.getInstance().saveConfigure(ConfigManager.CONFIG_LIANLIANKAN_GAME_LEVEL, "normal");
 			break;
-		case LEVEL_HARD:
+		case IGameProfile.LEVEL_HARD:
 			ConfigManager.getInstance().saveConfigure(ConfigManager.CONFIG_LIANLIANKAN_GAME_LEVEL, "hard");
 			break;
 		default:
@@ -421,21 +160,17 @@ public class LianLianKanGameActivity extends GameActivity implements IGameTimerL
 	protected void loadConfiguration() {
 		String levelStr = ConfigManager.getInstance().getConfigure(ConfigManager.CONFIG_LIANLIANKAN_GAME_LEVEL);
 		if(levelStr == null || levelStr.equals("")){
-			level = LEVEL_NORMAL;
-			profile = LianLianKanProfile.NORMAL;
+			level = IGameProfile.LEVEL_NORMAL;
 		}else if(levelStr.equalsIgnoreCase("easy")){
-			level = LEVEL_EASY;
-			profile = LianLianKanProfile.EASY;
+			level = IGameProfile.LEVEL_EASY;
 		}else if(levelStr.equalsIgnoreCase("normal")){
-			level = LEVEL_NORMAL;
-			profile = LianLianKanProfile.NORMAL;
+			level = IGameProfile.LEVEL_NORMAL;
 		}else if(levelStr.equalsIgnoreCase("hard")){
-			level = LEVEL_HARD;
-			profile = LianLianKanProfile.HARD;
+			level = IGameProfile.LEVEL_HARD;
 		}else{
-			level = LEVEL_NORMAL;
-			profile = LianLianKanProfile.NORMAL;
+			level = IGameProfile.LEVEL_NORMAL;
 		}
+		profile = getProfileFactory().getProfile(level);
 		
 		String musicOnStr = ConfigManager.getInstance().getConfigure(ConfigManager.CONFIG_LIANLIANKAN_GAME_MUSIC_ON);
 		if(musicOnStr != null && (musicOnStr.equals("1")||musicOnStr.equalsIgnoreCase("true"))){
@@ -454,7 +189,8 @@ public class LianLianKanGameActivity extends GameActivity implements IGameTimerL
 	
 	@Override
 	protected AbstractGame createGameInstance() {
-		return new LianLianKan(profile.getRowNumber(), profile.getColumnNumber(), profile.getSameImageCount(), profile.getMaxHintNumber(), profile.getMaxTime(), profile.getBonusTime());
+		LianLianKanProfile p = (LianLianKanProfile)profile;
+		return new LianLianKan(p.getRowNumber(), p.getColumnNumber(), p.getSameImageCount(), p.getMaxHintNumber(), p.getMaxTime(), p.getBonusTime());
 	}
 
 	@Override
@@ -470,7 +206,17 @@ public class LianLianKanGameActivity extends GameActivity implements IGameTimerL
 		
 		return true;
 	}
+	
+	@Override
+	protected IGameProfileFactory getProfileFactory() {
+		return new LianLianKanProfileFactory();
+	}
 
+	@Override
+	protected int getMenuId() {
+		return R.menu.lianliankan;
+	}
+	
 	@Override
 	public void onDeadLock(LianLianKan game) {
 		game.rerange();
@@ -481,11 +227,11 @@ public class LianLianKanGameActivity extends GameActivity implements IGameTimerL
 		timeValueText.setText(resources.getString(R.string.game_lianliankan_lable_counter) +":(" + timeLeft +"s)");
 		counterProgress.setProgress(timeLeft);
 		
-		if(!timeUPPlayed && (timeLeft <= profile.getMaxTime() * 0.25)){
+		if(!timeUPPlayed && (timeLeft <= ((LianLianKanProfile)profile).getMaxTime() * 0.25)){
 			playSFX(SFX_TIMEUP);
 			timeUPPlayed = true;
 		}
-		if(timeUPPlayed && (timeLeft > profile.getMaxTime() * 0.25)){
+		if(timeUPPlayed && (timeLeft > ((LianLianKanProfile)profile).getMaxTime() * 0.25)){
 			timeUPPlayed = false;
 		}
 		
@@ -525,7 +271,7 @@ public class LianLianKanGameActivity extends GameActivity implements IGameTimerL
 		controlButton.setEnabled(false);
 		hintButton.setEnabled(false);
 		gameMapView.invalidate();
-		showSucceedDialog();
+
 		playSFX(SFX_GAMEFINISH);
 	}
 
@@ -556,13 +302,13 @@ public class LianLianKanGameActivity extends GameActivity implements IGameTimerL
 	public void onStarted(AbstractGame game) {
 		playSFX(SFX_GAMESTART);
 		
-		counterProgress.setMax(profile.getMaxTime());
-		timeValueText.setText(resources.getString(R.string.game_lianliankan_lable_counter) +":(" + profile.getMaxTime() +"s)");
+		counterProgress.setMax(((LianLianKanProfile)profile).getMaxTime());
+		timeValueText.setText(resources.getString(R.string.game_lianliankan_lable_counter) +":(" + ((LianLianKanProfile)profile).getMaxTime() +"s)");
 		controlButton.setEnabled(true);
 		controlButton.setBackgroundResource(R.layout.selector_btn_pause);
 		controlText.setText(resources.getString(R.string.game_lianliankan_lable_pause));
 		hintButton.setEnabled(true);
-		hintNumberText.setText(resources.getString(R.string.game_lianliankan_lable_hint_number) + "(" + (profile.getMaxHintNumber() == -1?"-":Integer.toString(profile.getMaxHintNumber())) +")");
+		hintNumberText.setText(resources.getString(R.string.game_lianliankan_lable_hint_number) + "(" + (((LianLianKanProfile)profile).getMaxHintNumber() == -1?"-":Integer.toString(((LianLianKanProfile)profile).getMaxHintNumber())) +")");
 		gameMapView.invalidate();
 		
 		super.onStarted(game);
@@ -586,8 +332,6 @@ public class LianLianKanGameActivity extends GameActivity implements IGameTimerL
 		hintButton.setEnabled(false);
 		gameMapView.invalidate();
 		playSFX(SFX_GAMEOVER);
-		showGameOverDialog();
 	}
-
 	
 }

@@ -1,38 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="game_puzzle_title_dialog">Puzzle Game</string>
-    <string name="game_puzzle_title_settings">Settings</string>
-    <string name="game_puzzle_info_quitconfirm">Do you want to quit the game?</string>
-    <string name="game_puzzle_info_restartconfirm">Do you want to restart game?</string>
-    <string name="game_puzzle_info_resolveconfirm">Do you want to resolve the game automatically? This may take some time to calculate the solution.</string>
-    <string name="game_puzzle_info_resolvestep">Resolve total steps:</string>
-    <string name="game_puzzle_info_succeeddialog">Congratulations! You have finished the mini game.</string>
-    <string name="game_puzzle_info_gameoverdialog">Game Over!</string>
-    <string name="game_puzzle_info_settingschangeconfirm">The game settings has changed, do you want to restart the game?</string>
-    <string name="game_puzzle_info_resolvingprogress">Current progress is:</string>
-    <string name="game_puzzle_info_resolvingprepare">Waiting for algorithm prepare...</string>
-    <string name="game_puzzle_info_gamepaused">Game Paused</string>
-    <string name="game_puzzle_info_gameover">Game Over</string>
-    <string name="game_puzzle_lable_restartbtn">Play Again</string>
-    <string name="game_puzzle_lable_exitbtn">Exit</string>
-    <string name="game_puzzle_lable_closebtn">Close</string>
-    <string name="game_puzzle_lable_okbtn">Ok</string>
-    <string name="game_puzzle_lable_cancelbtn">Cancel</string>
-    <string name="game_puzzle_lable_yesbtn">Yes</string>
-    <string name="game_puzzle_lable_nobtn">No</string>
     <string name="game_puzzle_lable_movecount">Moves</string>
     <string name="game_puzzle_lable_counter">Time</string>
     <string name="game_puzzle_lable_pause">&#160;&#160;Pause&#160;&#160;</string>
     <string name="game_puzzle_lable_resume">Resume</string>
-    <string name="game_puzzle_lable_settings_level">Level:</string>
-    <string name="game_puzzle_lable_settings_level_easy">Easy</string>
-    <string name="game_puzzle_lable_settings_level_normal">Normal</string>
-    <string name="game_puzzle_lable_settings_level_hard">Hard</string>
-    <string name="game_puzzle_lable_settings_music">Music</string>
-    <string name="game_puzzle_lable_settings_sfx">Sound Effect</string>
-    <string name="game_puzzle_menuitem_restart">Restart</string>
-    <string name="game_puzzle_menuitem_settings">Settings</string>
     <string name="game_puzzle_menuitem_resolve">Resolution</string>
-    <string name="game_puzzle_menuitem_quit">Quit</string>
-    <string name="game_puzzle_error_invalid_maxcountervalue">Invalid game time value!</string>
+    <string name="game_puzzle_info_resolveconfirm">Do you want to resolve the game automatically? This may take some time to calculate the solution.</string>
+    <string name="game_puzzle_info_resolvestep">Resolve total steps:</string>
+    <string name="game_puzzle_info_resolvingprogress">Current progress is:</string>
+    <string name="game_puzzle_info_resolvingprepare">Waiting for algorithm prepare...</string>
 </resources>

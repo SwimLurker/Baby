@@ -287,9 +287,9 @@ public class LianLianKanMapView extends ImageView {
 			
 			String infoText = null;
 			if(game.isPaused()){
-				infoText = context.getResources().getString(R.string.game_lianliankan_info_gamepaused);
+				infoText = context.getResources().getString(R.string.game_info_gamepaused);
 			}else if(game.isGameOver()){
-				infoText = context.getResources().getString(R.string.game_lianliankan_info_gameover);
+				infoText = context.getResources().getString(R.string.game_info_gameover);
 			}
 			drawInfoBox(infoText, newCanvas, infoBoxPaint, textPaint);
 			

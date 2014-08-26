@@ -1,33 +1,105 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/tetris_bk" 
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical" >
-    <RelativeLayout 
-	    android:layout_width="fill_parent"
-   		android:layout_height="wrap_content"
-   		android:layout_weight="5.0" >
-	   	<org.slstudio.baby.game.tetris.ui.TetrominoView 
-	        android:id="@+id/game_next_tetromino"
-		    android:layout_width="wrap_content"
-	   		android:layout_height="fill_parent" 
-	   		android:layout_margin="0dp"
-	   		android:padding="0dp"
-	   		android:background="#FFFFFF" >   
-		</org.slstudio.baby.game.tetris.ui.TetrominoView>
-	</RelativeLayout>
+    android:orientation="horizontal" >"
 	<RelativeLayout 
-	    android:layout_width="fill_parent"
+	    android:layout_width="wrap_content"
    		android:layout_height="fill_parent"
    		android:layout_weight="1.0"
-   		android:layout_margin="20dp">
+   		android:padding="20dp">
 	   	<org.slstudio.baby.game.tetris.ui.TetrisMapView 
 	        android:id="@+id/game_tetris_layout"
 		    android:layout_width="fill_parent"
 	   		android:layout_height="fill_parent" 
 	   		android:layout_margin="0dp"
-	   		android:padding="0dp"
-	   		android:background="#FFFFFF" >   
+	   		android:padding="0dp" >   
 		</org.slstudio.baby.game.tetris.ui.TetrisMapView>
+	</RelativeLayout>
+	<RelativeLayout 
+	    android:layout_width="wrap_content"
+   		android:layout_height="fill_parent"
+   		android:layout_weight="4.0"
+   		android:paddingTop="20dp" >
+	   	<LinearLayout 
+			android:id="@+id/layout_control"
+			android:layout_width="wrap_content"
+	  		android:layout_height="wrap_content"
+	  		android:orientation="vertical"
+	    	android:layout_alignParentLeft="true"
+	    	android:layout_centerVertical="true"
+	    	android:layout_marginTop="20dp" 
+	    	android:layout_gravity="left" >
+		    <ImageButton
+		        android:id="@+id/game_tetris_imagebtn_control"
+	        	android:layout_width="wrap_content"
+		    	android:layout_height="wrap_content"
+	        	android:background="@layout/selector_btn_pause" 
+	        	android:layout_marginTop="5dp" />	 
+	        <TextView
+	            android:id="@+id/game_tetris_textview_control"
+	            android:layout_width="wrap_content"
+	            android:layout_height="wrap_content"
+	            android:text="@string/game_tetris_lable_pause" 
+	            android:layout_marginBottom="5dp"
+	            android:gravity="left"
+	            android:textSize="12sp" 
+	            android:textColor="#FFFFFF"/>
+	    </LinearLayout> 
+		<LinearLayout 
+		    android:id="@+id/layout_score"
+	        android:layout_width="wrap_content"
+	        android:layout_height="wrap_content"
+	        android:orientation="vertical"
+	        android:layout_alignParentLeft="true"
+	        android:layout_above="@+id/layout_control"
+	        android:layout_marginTop="20dp">
+		    <TextView 
+	            android:id="@+id/game_tetris_textview_score"
+	            android:layout_width="wrap_content"
+	            android:layout_height="wrap_content"
+	            android:text = "@string/game_tetris_lable_score"
+	            android:textSize="12sp" 
+	            android:gravity="left"
+	            android:layout_marginBottom="5dp"
+	            android:textColor="#FFFFFF"/>
+		    <TextView 
+	            android:id="@+id/game_tetris_textview_blocknumber"
+	            android:layout_width="wrap_content"
+	            android:layout_height="wrap_content"
+	            android:text = "@string/game_tetris_lable_blocknumber" 
+	            android:textSize="12sp" 
+	            android:gravity="left"
+	            android:layout_marginBottom="5dp"
+	            android:textColor="#FFFFFF"/>
+	    </LinearLayout>
+	     <LinearLayout 
+	        android:id="@+id/layout_nextblock"
+	        android:layout_width="wrap_content"
+	        android:layout_height="wrap_content"
+	        android:orientation="vertical"
+	        android:layout_above="@+id/layout_score"
+	    	android:layout_alignParentLeft="true"
+	    	android:layout_marginTop="20dp">
+	        <TextView 
+	            android:id="@+id/game_tetris_textview_nextblock"
+	            android:layout_width="wrap_content"
+	            android:layout_height="wrap_content"
+	            android:text = "@string/game_tetris_lable_nextblock" 
+	            android:gravity="left" 
+	            android:textSize="12sp" 
+	            android:layout_marginBottom="5dp"
+	            android:textColor="#FFFFFF"/>
+		    <org.slstudio.baby.game.tetris.ui.TetrominoView 
+		        android:id="@+id/game_next_tetromino"
+			    android:layout_width="wrap_content"
+		   		android:layout_height="wrap_content" 
+		   		android:layout_marginRight="10dp"
+		   		android:padding="0dp"
+		   		android:layout_gravity="left" >
+	   		</org.slstudio.baby.game.tetris.ui.TetrominoView>
+		 </LinearLayout>
+	    
 	</RelativeLayout>
 </LinearLayout>

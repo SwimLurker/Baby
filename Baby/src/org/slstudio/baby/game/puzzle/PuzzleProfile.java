@@ -1,7 +1,9 @@
 package org.slstudio.baby.game.puzzle;
 
+import org.slstudio.baby.game.IGameProfile;
 
-public class PuzzleProfile {
+
+public class PuzzleProfile implements IGameProfile{
 	public static final PuzzleProfile EASY = new PuzzleProfile(2, 100);
 	public static final PuzzleProfile NORMAL = new PuzzleProfile(3, 200);
 	public static final PuzzleProfile HARD = new PuzzleProfile(4, 300);
@@ -22,7 +24,5 @@ public class PuzzleProfile {
 	public int getMaxTime() {
 		return maxTime;
 	}
-	
-	
 	
 }

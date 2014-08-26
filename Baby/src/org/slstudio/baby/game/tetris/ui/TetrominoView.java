@@ -11,7 +11,7 @@ import android.util.AttributeSet;
 
 public class TetrominoView extends TileView{
 	
-	private static Paint framePaint = null;
+	private static Paint framePaint, frameBKPaint;
 	
 	private Tetromino tetromino = null;
 	
@@ -19,8 +19,12 @@ public class TetrominoView extends TileView{
 	static{
 		framePaint = new Paint();
 		framePaint.setStyle(Paint.Style.STROKE);
-		framePaint.setStrokeWidth(2);
+		framePaint.setStrokeWidth(1);
 		framePaint.setColor(Color.GRAY);
+		frameBKPaint = new Paint();
+		frameBKPaint.setStyle(Paint.Style.FILL);
+		frameBKPaint.setColor(Color.WHITE);
+		frameBKPaint.setAlpha(128);
 	}
 	
 	public TetrominoView(Context context, AttributeSet attrs, int defStyleAttr) {
@@ -60,6 +64,7 @@ public class TetrominoView extends TileView{
 	protected void onDraw(Canvas canvas){
 		Rect frameRect = new Rect(getMarginWidth(), getMarginHeight(), getViewWidth() - getMarginWidth(), getViewHeight() - getMarginHeight());
 		canvas.drawRect(frameRect, framePaint);
+		canvas.drawRect(frameRect, frameBKPaint);
 		super.onDraw(canvas);	
 	}
 }

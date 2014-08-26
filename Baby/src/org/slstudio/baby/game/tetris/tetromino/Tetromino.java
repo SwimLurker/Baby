@@ -7,13 +7,16 @@ public class Tetromino {
 	public static final int TILE_BLOCK = 1;
 	
 	public static final int COLOR_RED = 1;
-	public static final int COLOR_GREEN = 2;
-	public static final int COLOR_BLUE = 3;
-	public static final int COLOR_YELLOW = 4;
-	public static final int COLOR_PURPLE = 5;
+	public static final int COLOR_ORANGE = 2;
+	public static final int COLOR_YELLOW = 3;
+	public static final int COLOR_GREEN = 4;
+	public static final int COLOR_DARKGREEN = 5;
 	public static final int COLOR_CYAN = 6;
-	public static final int COLOR_ORANGE = 7;
-	public static final int NUMBER_OF_COLOR = 7;
+	public static final int COLOR_BLUE = 7;
+	public static final int COLOR_DARKBLUE = 8;
+	public static final int COLOR_PURPLE = 9;
+	public static final int COLOR_BROWN = 10;
+	public static final int NUMBER_OF_COLOR = 10;
 	
 	protected int size = 3;
 	
@@ -124,6 +127,9 @@ public class Tetromino {
 					if(newX + col <0 || newX + col >= map.getColNumber()){
 						return true;
 					}
+					if(y + row < 0 || y + row >= map.getRowNumber()){
+						return true;
+					}
 					if(map.getTile(y + row, newX + col)!= TILE_BLANK){
 						return true;
 					}
@@ -143,6 +149,9 @@ public class Tetromino {
 			for(int col = 0; col < size; col++){
 				if(newSharp[row][col] != TILE_BLANK){
 					if(newY + row < 0||newY + row >= map.getRowNumber()){
+						return true;
+					}
+					if(x + col < 0||x + col >= map.getColNumber()){
 						return true;
 					}
 					if(map.getTile(newY + row, x + col)!= TILE_BLANK){

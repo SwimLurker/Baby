@@ -18,7 +18,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="@string/game_lianliankan_lable_settings_music"
+                    android:text="@string/game_lable_settings_music"
                     android:textColor="#FFFFFF"
                     android:textSize="14sp"
                     android:textStyle="normal"
@@ -42,7 +42,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="@string/game_lianliankan_lable_settings_sfx"
+                    android:text="@string/game_lable_settings_sfx"
                     android:textColor="#FFFFFF"
                     android:textSize="14sp"
                     android:textStyle="normal"
@@ -66,7 +66,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="@string/game_lianliankan_lable_settings_level"
+                    android:text="@string/game_lable_settings_level"
                     android:textColor="#FFFFFF"
                     android:textSize="14sp"
                     android:textStyle="normal"
@@ -82,21 +82,21 @@
 	                    android:layout_width="wrap_content"
 	                    android:layout_height="wrap_content"
 	                    android:checked="true"
-	                    android:text="@string/game_lianliankan_lable_settings_level_easy" 
+	                    android:text="@string/game_lable_settings_level_easy" 
 	                    android:textColor="#FFFFFF" />
 	                <RadioButton
 	               	    android:id="@+id/game_settings_level_normal"
 	                    android:layout_width="wrap_content"
 	                    android:layout_height="wrap_content"
 	                    android:checked="false"
-	                    android:text="@string/game_lianliankan_lable_settings_level_normal" 
+	                    android:text="@string/game_lable_settings_level_normal" 
 	                    android:textColor="#FFFFFF" />
 	                <RadioButton
 	               	    android:id="@+id/game_settings_level_hard"
 	                    android:layout_width="wrap_content"
 	                    android:layout_height="wrap_content"
 	                    android:checked="false"
-	                    android:text="@string/game_lianliankan_lable_settings_level_hard"
+	                    android:text="@string/game_lable_settings_level_hard"
 	                    android:textColor="#FFFFFF" />
                	</RadioGroup>
             </TableRow>

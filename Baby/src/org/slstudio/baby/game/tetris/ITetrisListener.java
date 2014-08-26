@@ -5,4 +5,5 @@ public interface ITetrisListener {
 	public void onTetrominoMove();
 	public void onTetrominoRotated();
 	public void onLineCleaned(int lineNumber);
+	public void onLinesCleaned(int cleanedLineNumber);
 }

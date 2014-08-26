@@ -10,6 +10,8 @@ import java.io.OutputStream;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.Drawable;
 import android.media.ThumbnailUtils;
 import android.os.Environment;
 import android.os.StatFs;
@@ -45,6 +47,14 @@ public class BitmapUtil {
 				}
 			}
 		}
+	}
+	
+	public static Drawable getDrawableFromFile(String filename){
+		Bitmap bitmap = getBitmapFromFile(filename);
+		if(bitmap != null){
+			return new BitmapDrawable(bitmap);
+		}
+		return null;
 	}
 	
 	public static Bitmap getBitmapFromResource(Resources resouces, int resId){

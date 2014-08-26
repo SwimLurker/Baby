@@ -1,8 +1,10 @@
 package org.slstudio.baby.game.tetris;
 
+import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
+import java.util.UUID;
 
 import org.slstudio.baby.game.AbstractGame;
 import org.slstudio.baby.game.GameException;
@@ -31,6 +33,7 @@ public class TetrisGame extends AbstractGame{
 	public static final long TETROMINO_NEW_INTERVAL = 1000;
 	public static final long TETROMINO_MOVE_INTERVAL = 1200;
 	public static final long TETROMINO_MOVE_INTERVAL_RESEND = 400;
+	public static final long TETROMINO_MESSAGE_DELAY = 1000;
 	
 	public static final int TETROMINO_L = 0;
 	public static final int TETROMINO_J = 1;
@@ -41,8 +44,12 @@ public class TetrisGame extends AbstractGame{
 	public static final int TETROMINO_I = 6;
 	public static final int NUMBER_OF_TETROMINO_TYPE = 7;
 	
-	
-	
+	public static final long SCORE_INCREASE_SINGLELINE = 100;
+	public static final long SCORE_INCREASE_DOUBLELINE = 300;
+	public static final long SCORE_INCREASE_TRIPLELINE = 500;
+	public static final long SCORE_INCREASE_FOURLINE = 1000;
+
+
 	private TetrisMap currentMap = null;
 	private TetrisMap lastMoveMap = null;
 	private TetrisMap oldMap = null;
@@ -51,9 +58,11 @@ public class TetrisGame extends AbstractGame{
 	
 	private Tetromino nextTetromino = null;
 	
-	private Random random = new Random();
-	
 	private int tetrominoCount = 200;
+	
+	private float moveSpeed = 1.0f;
+	
+	private long score = 0;
 	
 	private List<ITetrisListener> tetrisListener = new ArrayList<ITetrisListener>();
 	
@@ -64,39 +73,69 @@ public class TetrisGame extends AbstractGame{
 
 		@Override
 		public void handleMessage(Message msg) {
-			if(msg.what == MSG_TETROMINO_MOVE){
-				Log.d(TAG, "receive move tetromino message");
-				lastMoveMap.copyFrom(currentMap);
-				gameMove();
-				
-			}else if (msg.what == MSG_NEW_TETROMINO){
-				Log.d(TAG, "receive new tetromino message");
-				
-				currentMap.copyFrom(lastMoveMap);
-				gameChecking();
-				if(isRunning()){
-					oldMap.copyFrom(currentMap);
-					
-					currentTetromino = getNewTetromino();
-					if(currentTetromino.isAvailable(currentMap)){
-						currentTetromino.putOnMap(currentMap);
+			if(isStarted()){
+				if(!isPaused()){
+					if(msg.what == MSG_TETROMINO_MOVE){
+						Log.d(TAG, "receive move tetromino message");
+						lastMoveMap.copyFrom(currentMap);
+						gameMove();					
+					}else if (msg.what == MSG_NEW_TETROMINO){
+						Log.d(TAG, "receive new tetromino message");
 						
-						for(ITetrisListener listener: tetrisListener){
-							listener.onNewTetromino();
+						currentMap.copyFrom(lastMoveMap);
+						gameChecking();
+						
+						oldMap.copyFrom(currentMap);
+						
+						currentTetromino = getNewTetromino();
+						if(currentTetromino.isAvailable(currentMap)){
+							currentTetromino.putOnMap(currentMap);
+							
+							this.removeMessages(MSG_TETROMINO_MOVE);
+							this.sendEmptyMessageDelayed(MSG_TETROMINO_MOVE, (int)(TETROMINO_MOVE_INTERVAL / moveSpeed));
+							
+							for(ITetrisListener listener: tetrisListener){
+								listener.onNewTetromino();
+							}
+						}else{
+							gameOver();
 						}
-						this.removeMessages(MSG_TETROMINO_MOVE);
-						this.sendEmptyMessageDelayed(MSG_TETROMINO_MOVE, TETROMINO_MOVE_INTERVAL);
-						
-					}else{
-						gameOver();
 					}
+					
+				}else{
+					Log.d(TAG, "game paused, delay message");
+					delayMessage(msg.what);				
 				}
 				
 			}
 		}
+
+		private void delayMessage(int msg){
+			handler.removeMessages(msg);
+			handler.sendEmptyMessageDelayed(msg, TETROMINO_MESSAGE_DELAY);
+			Log.d(TAG, "send delayed message:" + msg);
+		}
 		
 	};
 	
+	public TetrisGame(int tetrominoCount, float moveSpeed) {
+		super();
+		this.tetrominoCount = tetrominoCount;
+		this.moveSpeed = moveSpeed;
+	}
+
+	public int getTetrominoCount() {
+		return tetrominoCount;
+	}
+
+	public float getMoveSpeed() {
+		return moveSpeed;
+	}
+
+	public long getScore() {
+		return score;
+	}
+
 	public void addCustomizedListener(ITetrisListener listener){
 		tetrisListener.add(listener);
 	}
@@ -135,15 +174,43 @@ public class TetrisGame extends AbstractGame{
 	}
 	
 	private void clearLines() {
+		int cleanedLineNumber = 0;
 		int cleanedLine = -1;
 		while((cleanedLine = currentMap.clearLine())!= -1){
+			cleanedLineNumber ++;
 			for(ITetrisListener listener: tetrisListener){
 				listener.onLineCleaned(cleanedLine);
 			}
 		}
+		addScore(cleanedLineNumber);
 		oldMap.copyFrom(currentMap);
 		lastMoveMap.copyFrom(currentMap);
 		
+		if(cleanedLineNumber > 0){
+			for(ITetrisListener listener: tetrisListener){
+				listener.onLinesCleaned(cleanedLineNumber);
+			}
+		}
+	}
+
+	private void addScore(int cleanedLineNumber) {
+		long increasedScore = 0;
+		switch(cleanedLineNumber){
+		case 1:
+			increasedScore = SCORE_INCREASE_SINGLELINE;
+			break;
+		case 2:
+			increasedScore = SCORE_INCREASE_DOUBLELINE;
+			break;
+		case 3:
+			increasedScore = SCORE_INCREASE_TRIPLELINE;
+			break;
+		case 4:
+			increasedScore = SCORE_INCREASE_FOURLINE;
+			break;
+		}
+	
+		score += increasedScore;
 	}
 
 	@Override
@@ -168,6 +235,10 @@ public class TetrisGame extends AbstractGame{
 	
 	private Tetromino createRandomTetromino() {
 		Tetromino result = null;
+		
+		SecureRandom random = new SecureRandom();
+		
+		random.setSeed(UUID.randomUUID().hashCode());
 		
 		int type = random.nextInt(NUMBER_OF_TETROMINO_TYPE);
 		switch(type){
@@ -235,7 +306,7 @@ public class TetrisGame extends AbstractGame{
 				lastMoveMap.copyFrom(currentMap);
 				
 				//if old position will collision but new moved position will not, then need remove the new tetromino message and send tetromino move message=
-				if(!currentTetromino.isCollisionY(currentTetromino.getY() + 1, currentTetromino.getSharp(), currentMap)){
+				if(!currentTetromino.isCollisionY(currentTetromino.getY() + 1, currentTetromino.getSharp(), oldMap)){
 					if(handler.hasMessages(MSG_NEW_TETROMINO)){
 						handler.removeMessages(MSG_NEW_TETROMINO);
 						handler.sendEmptyMessageDelayed(MSG_TETROMINO_MOVE, TETROMINO_MOVE_INTERVAL_RESEND);
@@ -243,7 +314,7 @@ public class TetrisGame extends AbstractGame{
 				}
 				
 				for(ITetrisListener listener: tetrisListener){
-					listener.onTetrominoMove();;
+					listener.onTetrominoMove();
 				}
 				return true;
 			}
@@ -260,7 +331,7 @@ public class TetrisGame extends AbstractGame{
 				lastMoveMap.copyFrom(currentMap);
 				
 				//if old position will collision but new moved position will not, then need remove the new tetromino message and send tetromino move message=
-				if(!currentTetromino.isCollisionY(currentTetromino.getY() + 1, currentTetromino.getSharp(), currentMap)){
+				if(!currentTetromino.isCollisionY(currentTetromino.getY() + 1, currentTetromino.getSharp(), oldMap)){
 					if(handler.hasMessages(MSG_NEW_TETROMINO)){
 						handler.removeMessages(MSG_NEW_TETROMINO);
 						handler.sendEmptyMessageDelayed(MSG_TETROMINO_MOVE, TETROMINO_MOVE_INTERVAL_RESEND);
@@ -268,7 +339,7 @@ public class TetrisGame extends AbstractGame{
 				}
 				
 				for(ITetrisListener listener: tetrisListener){
-					listener.onTetrominoMove();;
+					listener.onTetrominoMove();
 				}
 				return true;
 			}
@@ -285,7 +356,7 @@ public class TetrisGame extends AbstractGame{
 				lastMoveMap.copyFrom(currentMap);
 				
 				for(ITetrisListener listener: tetrisListener){
-					listener.onTetrominoMove();;
+					listener.onTetrominoMove();
 				}
 				return true;
 			}else{
@@ -295,11 +366,13 @@ public class TetrisGame extends AbstractGame{
 	}
 	
 	private void gameMove(){
+		
 		if(moveTetrominoDown()){
 			handler.removeMessages(MSG_TETROMINO_MOVE);
-			handler.sendEmptyMessageDelayed(MSG_TETROMINO_MOVE, TETROMINO_NEW_INTERVAL);
+			handler.sendEmptyMessageDelayed(MSG_TETROMINO_MOVE, (int)(TETROMINO_MOVE_INTERVAL / moveSpeed));
 		}else{
-			handler.sendEmptyMessageDelayed(MSG_NEW_TETROMINO, TETROMINO_NEW_INTERVAL);
+			Log.d(TAG, "can not move tetromino down, send new tetromino message");
+			handler.sendEmptyMessageDelayed(MSG_NEW_TETROMINO, (int)(TETROMINO_NEW_INTERVAL / moveSpeed));
 		}
 	}
 
@@ -312,9 +385,13 @@ public class TetrisGame extends AbstractGame{
 				lastMoveMap.copyFrom(currentMap);
 				
 				for(ITetrisListener listener: tetrisListener){
-					listener.onTetrominoMove();;
+					listener.onTetrominoMove();
 				}
 			}
+			handler.removeMessages(MSG_TETROMINO_MOVE);
+			Log.d(TAG, "drop tetromino down, send new tetromino message");
+			handler.removeMessages(MSG_NEW_TETROMINO);
+			handler.sendEmptyMessage(MSG_NEW_TETROMINO);
 		}
 	}
 }

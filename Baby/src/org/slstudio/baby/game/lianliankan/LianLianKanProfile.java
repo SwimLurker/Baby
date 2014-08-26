@@ -1,6 +1,8 @@
 package org.slstudio.baby.game.lianliankan;
 
-public class LianLianKanProfile {
+import org.slstudio.baby.game.IGameProfile;
+
+public class LianLianKanProfile implements IGameProfile{
 	public static final LianLianKanProfile EASY = new LianLianKanProfile(8, 6, 4, -1, 30, 5);
 	public static final LianLianKanProfile NORMAL = new LianLianKanProfile(10, 8, 4, 5, 30, 5);
 	public static final LianLianKanProfile HARD = new LianLianKanProfile(12, 10, 4, 3, 50, 3);
@@ -41,7 +43,5 @@ public class LianLianKanProfile {
 	public int getBonusTime() {
 		return bonusTime;
 	}
-	
-	
 	
 }

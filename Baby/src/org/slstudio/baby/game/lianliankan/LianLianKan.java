@@ -3,11 +3,13 @@ package org.slstudio.baby.game.lianliankan;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
+import java.util.UUID;
 
 import org.slstudio.baby.data.PhotoManager;
 import org.slstudio.baby.game.GameException;
@@ -142,7 +144,8 @@ public class LianLianKan extends TimeableGame{
 		//get different iamge list
 		List<String> imageList = getRandomImageList(differentImageCount);
 		
-		Random r = new Random();
+		
+		SecureRandom r = new SecureRandom();
 		
 		for(int i = 0; i < mapRowNumber; i++){
 			for(int j = 0; j < mapColumnNumber; j++){
@@ -152,6 +155,7 @@ public class LianLianKan extends TimeableGame{
 					b.setImageId(Block.EMPTY_IMAGEID);
 					b.setEmpty(true);
 				}else{
+					r.setSeed(UUID.randomUUID().hashCode());
 					
 					int index = r.nextInt(imageIds.size());
 					Bitmap bitmap = getBlockImage(imageList.get(imageIds.get(index)));

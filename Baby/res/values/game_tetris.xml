@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="game_tetris_lable_score">Score:</string>
+    <string name="game_tetris_lable_blocknumber">Blocks:</string>
+    <string name="game_tetris_lable_nextblock">Next:</string>
+    <string name="game_tetris_lable_pause">Pause</string>
+    <string name="game_tetris_lable_resume">Resume</string>
+</resources>

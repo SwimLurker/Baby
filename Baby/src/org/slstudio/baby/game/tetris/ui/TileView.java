@@ -159,24 +159,34 @@ public class TileView extends View {
 		case Tetromino.COLOR_RED:
 			result = resources.getDrawable(R.drawable.block_red);
 			break;
-		case Tetromino.COLOR_GREEN:
-			result = resources.getDrawable(R.drawable.block_green);
-			break;
-		case Tetromino.COLOR_BLUE:
-			result = resources.getDrawable(R.drawable.block_blue);
+		case Tetromino.COLOR_ORANGE:
+			result = resources.getDrawable(R.drawable.block_orange);
 			break;
 		case Tetromino.COLOR_YELLOW:
 			result = resources.getDrawable(R.drawable.block_yellow);
 			break;
-		case Tetromino.COLOR_PURPLE:
-			result = resources.getDrawable(R.drawable.block_purple);
+		case Tetromino.COLOR_GREEN:
+			result = resources.getDrawable(R.drawable.block_green);
+			break;
+		case Tetromino.COLOR_DARKGREEN:
+			result = resources.getDrawable(R.drawable.block_darkgreen);
 			break;
 		case Tetromino.COLOR_CYAN:
 			result = resources.getDrawable(R.drawable.block_cyan);
 			break;
-		case Tetromino.COLOR_ORANGE:
-			result = resources.getDrawable(R.drawable.block_orange);
+		case Tetromino.COLOR_BLUE:
+			result = resources.getDrawable(R.drawable.block_blue);
 			break;
+		case Tetromino.COLOR_DARKBLUE:
+			result = resources.getDrawable(R.drawable.block_darkblue);
+			break;
+		case Tetromino.COLOR_PURPLE:
+			result = resources.getDrawable(R.drawable.block_purple);
+			break;
+		case Tetromino.COLOR_BROWN:
+			result = resources.getDrawable(R.drawable.block_brown);
+			break;
+		
 		}
 			
 		return result;

@@ -1,6 +1,5 @@
 package org.slstudio.baby;
 
-import java.lang.reflect.Field;
 import java.util.List;
 import java.util.Random;
 import java.util.Stack;
@@ -10,7 +9,8 @@ import org.slstudio.baby.data.PhotoManager;
 import org.slstudio.baby.game.AbstractGame;
 import org.slstudio.baby.game.GameActivity;
 import org.slstudio.baby.game.GameException;
-import org.slstudio.baby.game.IGameListener;
+import org.slstudio.baby.game.IGameProfile;
+import org.slstudio.baby.game.IGameProfileFactory;
 import org.slstudio.baby.game.IGameTimerListener;
 import org.slstudio.baby.game.TimeableGame;
 import org.slstudio.baby.game.puzzle.AlgorithmNotReadyException;
@@ -19,34 +19,24 @@ import org.slstudio.baby.game.puzzle.IProgressListener;
 import org.slstudio.baby.game.puzzle.IPuzzleGameListener;
 import org.slstudio.baby.game.puzzle.Puzzle;
 import org.slstudio.baby.game.puzzle.PuzzleProfile;
+import org.slstudio.baby.game.puzzle.PuzzleProfileFactory;
 import org.slstudio.baby.game.puzzle.PuzzleResolver;
 import org.slstudio.baby.game.puzzle.DIRECTION;
 import org.slstudio.baby.game.puzzle.ui.PuzzleView;
-import org.slstudio.baby.game.service.BGMusicService;
-import org.slstudio.baby.game.util.SoundPlayer;
 import org.slstudio.baby.util.BitmapUtil;
 
-import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
-import android.content.ComponentName;
-import android.content.Context;
 import android.content.DialogInterface;
-import android.content.Intent;
-import android.content.ServiceConnection;
-import android.content.res.Configuration;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
-import android.os.IBinder;
 import android.os.Message;
-import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
-import android.view.animation.AlphaAnimation;
 import android.view.animation.Animation;
 import android.view.animation.AnimationSet;
 import android.view.animation.ScaleAnimation;
@@ -55,11 +45,9 @@ import android.view.Window;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
-import android.widget.RadioButton;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
-import android.widget.ToggleButton;
 
 public class PuzzleGameActivity extends GameActivity implements IGameTimerListener, IPuzzleGameListener{
 	
@@ -71,13 +59,6 @@ public class PuzzleGameActivity extends GameActivity implements IGameTimerListen
 	public static final int SFX_GAMEFINISH = 4;
 	public static final int SFX_PIECEMOVE = 5;
 	public static final int SFX_TIMEUP = 6;
-	
-	public static final int LEVEL_EASY = 1;
-	public static final int LEVEL_NORMAL = 2;
-	public static final int LEVEL_HARD = 3;
-	
-	private int level = LEVEL_EASY;
-	private PuzzleProfile profile = null;
 	
 	private Resources resources = null;
 	
@@ -103,25 +84,24 @@ public class PuzzleGameActivity extends GameActivity implements IGameTimerListen
 	private int resolveSteps = 0;
 	
 	private Handler resolverHandler = new Handler(){
-		Puzzle puzzle = (Puzzle)game;
 		
 		@Override
 		public void handleMessage(Message msg){
 			
-			if(puzzle.isStarted()){
+			if(game.isStarted()){
 				switch (msg.what){
 				case MSG_RESOLVER_UPDATE:
 					
 					if(resolveMoves!=null && resolveMoves.size()!=0){
 						DIRECTION direction  = resolveMoves.pop();
-						int from  = puzzle.getBlankPieceIndex();
+						int from  = ((Puzzle)game).getBlankPieceIndex();
 						int to  = -1;
 						switch(direction){
 						case UP:
-							to = from - puzzle.getDimension();
+							to = from - ((Puzzle)game).getDimension();
 							break;
 						case DOWN:
-							to = from + puzzle.getDimension();
+							to = from + ((Puzzle)game).getDimension();
 							break;
 						case LEFT:
 							to = from -1;
@@ -130,19 +110,19 @@ public class PuzzleGameActivity extends GameActivity implements IGameTimerListen
 							to = from + 1;
 							break;
 						}
-						puzzle.movePiece(from, to);
+						((Puzzle)game).movePiece(from, to);
 						resolveSteps ++;
 						this.sendEmptyMessageDelayed(MSG_RESOLVER_UPDATE, 500);
 					}else{
 						new AlertDialog.Builder(PuzzleGameActivity.this)
 						.setIcon(R.drawable.ic_launcher)
 						.setTitle(resources.getString(R.string.game_puzzle_info_resolvestep) + Integer.toString(resolveSteps))
-						.setPositiveButton(resources.getString(R.string.game_puzzle_lable_closebtn),
+						.setPositiveButton(resources.getString(R.string.game_lable_closebtn),
 								new DialogInterface.OnClickListener() {
 									@Override
 									public void onClick(DialogInterface dialog,	int which) {
 										dialog.dismiss();
-										puzzle.gameWin();
+										game.gameWin();
 									}
 								}).show();
 						
@@ -264,53 +244,24 @@ public class PuzzleGameActivity extends GameActivity implements IGameTimerListen
 	}
 	
 
-	@Override
-	public boolean onCreateOptionsMenu(Menu menu) {
-		// Inflate the menu; this adds items to the action bar if it is present.
-		getMenuInflater().inflate(R.menu.puzzle, menu);
-		return true;
-	}
-
+	
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
+		
 		switch (item.getItemId()) {
-		case R.id.game_puzzle_menuitem_restart:
-			new AlertDialog.Builder(this)
-			.setIcon(R.drawable.ic_launcher)
-			.setTitle(resources.getString(R.string.game_puzzle_info_restartconfirm))
-			.setPositiveButton(resources.getString(R.string.game_puzzle_lable_okbtn),
-					new DialogInterface.OnClickListener() {
-						@Override
-						public void onClick(DialogInterface dialog,	int which) {
-							restartGame();
-						}
-					})
-			.setNegativeButton(resources.getString(R.string.game_puzzle_lable_cancelbtn),
-					new DialogInterface.OnClickListener() {
-
-						@Override
-						public void onClick(DialogInterface dialog,
-								int which) {
-							dialog.dismiss();
-						}
-					}).show();
-			break;
-		case R.id.game_puzzle_menuitem_settings:
-			showSettingsDialog();
-			break;
 		case R.id.game_puzzle_menuitem_resolve:
 			if(game!=null && game.isStarted()){
 				new AlertDialog.Builder(this)
 					.setIcon(R.drawable.ic_launcher)
 					.setTitle(resources.getString(R.string.game_puzzle_info_resolveconfirm))
-					.setPositiveButton(resources.getString(R.string.game_puzzle_lable_okbtn),
+					.setPositiveButton(resources.getString(R.string.game_lable_okbtn),
 							new DialogInterface.OnClickListener() {
 								@Override
 								public void onClick(DialogInterface dialog,	int which) {
 									resolvePuzzle();
 								}
 							})
-					.setNegativeButton(resources.getString(R.string.game_puzzle_lable_cancelbtn),
+					.setNegativeButton(resources.getString(R.string.game_lable_cancelbtn),
 							new DialogInterface.OnClickListener() {
 		
 								@Override
@@ -323,220 +274,24 @@ public class PuzzleGameActivity extends GameActivity implements IGameTimerListen
 				Toast.makeText(this, "Game is not running!", Toast.LENGTH_SHORT).show();
 			}
 			break;
-		case R.id.game_puzzle_menuitem_quit:
-			new AlertDialog.Builder(this)
-			.setIcon(R.drawable.ic_launcher)
-			.setTitle(resources.getString(R.string.game_puzzle_info_quitconfirm))
-			.setPositiveButton(resources.getString(R.string.game_puzzle_lable_okbtn),
-					new DialogInterface.OnClickListener() {
-						@Override
-						public void onClick(DialogInterface dialog,	int which) {
-							exitGame();
-						}
-					})
-			.setNegativeButton(resources.getString(R.string.game_puzzle_lable_cancelbtn),
-					new DialogInterface.OnClickListener() {
-
-						@Override
-						public void onClick(DialogInterface dialog,
-								int which) {
-							dialog.dismiss();
-						}
-					}).show();
-			break;
 		}
-		return true;
+		
+		return super.onOptionsItemSelected(item);	
 	}
 	
 
-	private void showSettingsDialog() {
-		final View dialogView = getLayoutInflater().inflate(R.layout.dialog_puzzle_gamesettings, null);
-		
-		RadioButton easyRB = (RadioButton)dialogView.findViewById(R.id.game_settings_level_easy); 
-		RadioButton normalRB = (RadioButton)dialogView.findViewById(R.id.game_settings_level_normal); 
-		RadioButton hardRB = (RadioButton)dialogView.findViewById(R.id.game_settings_level_hard);
-		
-		
-		switch(level){
-		case LEVEL_EASY:
-			easyRB.setChecked(true);
-			normalRB.setChecked(false);
-			hardRB.setChecked(false);
-			break;
-		case LEVEL_NORMAL:
-			easyRB.setChecked(false);
-			normalRB.setChecked(true);
-			hardRB.setChecked(false);
-			break;
-		case LEVEL_HARD:
-			easyRB.setChecked(false);
-			normalRB.setChecked(false);
-			hardRB.setChecked(true);
-			break;
-		default:
-			easyRB.setChecked(false);
-			normalRB.setChecked(true);
-			hardRB.setChecked(false);
-			break;
-		}
-    	
-		
-		ToggleButton musicTB = (ToggleButton) dialogView.findViewById(R.id.game_settings_music);
-		if(isBGMusicMute()){
-			musicTB.setChecked(false);
-		}else{
-			musicTB.setChecked(true);
-		}
-		
-		ToggleButton sfxTB = (ToggleButton) dialogView.findViewById(R.id.game_settings_sfx);
-		if(isSFXMute()){
-			sfxTB.setChecked(false);
-		}else{
-			sfxTB.setChecked(true);
-		}
-		
-    	Dialog dialog = new AlertDialog.Builder(this)
-        	.setIcon(R.drawable.ic_launcher)
-        	.setTitle(resources.getString(R.string.game_puzzle_title_settings))
-        	.setView(dialogView)
-        	.setPositiveButton(resources.getString(R.string.game_puzzle_lable_okbtn),new DialogInterface.OnClickListener() {
-				@Override
-				public void onClick(DialogInterface dialog, int which) {
-					try{
-						Field field = dialog.getClass().getSuperclass().getDeclaredField("mShowing");
-						field.setAccessible(true);  
-			            field.set(dialog, false);
-			        }catch(Exception e) {
-			        	e.printStackTrace();  
-			        }
-					
-					boolean needRestartEffect = false;
-					
-					RadioButton easyRB = (RadioButton)dialogView.findViewById(R.id.game_settings_level_easy); 
-					RadioButton normalRB = (RadioButton)dialogView.findViewById(R.id.game_settings_level_normal); 
-					RadioButton hardRB = (RadioButton)dialogView.findViewById(R.id.game_settings_level_hard);
-					
-					int newLevel = LEVEL_NORMAL;
-					PuzzleProfile newProfile = PuzzleProfile.NORMAL;
-					if(easyRB.isChecked()){
-						newLevel = LEVEL_EASY;
-						newProfile = PuzzleProfile.EASY;
-					}else if(normalRB.isChecked()){
-						newLevel = LEVEL_NORMAL;
-						newProfile = PuzzleProfile.NORMAL;
-					}else if(hardRB.isChecked()){
-						newLevel = LEVEL_HARD;
-						newProfile = PuzzleProfile.HARD;
-					}
-					
-					if(newLevel != level){
-						level = newLevel;
-						profile = newProfile;
-						needRestartEffect = true;
-					}
-					
-					ToggleButton musicTB = (ToggleButton) dialogView.findViewById(R.id.game_settings_music);
-					setBGMusicMute(!musicTB.isChecked());
-					
-					ToggleButton sfxTB = (ToggleButton) dialogView.findViewById(R.id.game_settings_sfx);
-					setSFXMute(!sfxTB.isChecked());
-					
-					saveConfiguration();
-					
-					if(needRestartEffect){
-					
-						new AlertDialog.Builder(PuzzleGameActivity.this)
-							.setIcon(R.drawable.ic_launcher)
-							.setTitle(resources.getString(R.string.game_puzzle_info_settingschangeconfirm))
-							.setPositiveButton(resources.getString(R.string.game_puzzle_lable_yesbtn), new DialogInterface.OnClickListener(){
-								
-								@Override
-								public void onClick(DialogInterface dialog, int which) {
-									restartGame();
-									
-								}
-							})
-							.setNegativeButton(resources.getString(R.string.game_puzzle_lable_nobtn), new DialogInterface.OnClickListener() {
-								
-								@Override
-								public void onClick(DialogInterface dialog, int which) {
-									
-								}
-							})
-							.show();
-					}
-					
-					try{
-						Field field = dialog.getClass().getSuperclass().getDeclaredField("mShowing");
-						field.setAccessible(true);  
-			            field.set(dialog, true);
-			        }catch(Exception e) {
-			        	e.printStackTrace();  
-			        }
-				}
-
-			})
-        	.setNegativeButton(resources.getString(R.string.game_puzzle_lable_exitbtn), new DialogInterface.OnClickListener() {
-				@Override
-				public void onClick(DialogInterface dialog, int which) {
-				}
-			})
-        	.show();
-	}
-
-	protected void showSucceedDialog() {
-		final View dialogView = getLayoutInflater().inflate(R.layout.dialog_puzzle_gamesucceed, null);
-    	
-    	Dialog dialog = new AlertDialog.Builder(this)
-        	.setIcon(R.drawable.ic_launcher)
-        	.setTitle(resources.getString(R.string.game_puzzle_title_dialog))
-        	.setView(dialogView)
-        	.setPositiveButton(resources.getString(R.string.game_puzzle_lable_restartbtn),new DialogInterface.OnClickListener() {
-				@Override
-				public void onClick(DialogInterface dialog, int which) {
-					restartGame();
-				}
-			})
-        	.setNegativeButton(resources.getString(R.string.game_puzzle_lable_closebtn), new DialogInterface.OnClickListener() {
-				@Override
-				public void onClick(DialogInterface dialog, int which) {
-				}
-			})
-        	.show();
-	}
 	
-	protected void showGameOverDialog() {
-		final View dialogView = getLayoutInflater().inflate(R.layout.dialog_puzzle_gameover, null);
-    	
-    	Dialog dialog = new AlertDialog.Builder(this)
-        	.setIcon(R.drawable.ic_launcher)
-        	.setTitle(resources.getString(R.string.game_puzzle_title_dialog))
-        	.setView(dialogView)
-        	.setPositiveButton(resources.getString(R.string.game_puzzle_lable_restartbtn),new DialogInterface.OnClickListener() {
-				@Override
-				public void onClick(DialogInterface dialog, int which) {
-					restartGame();
-				}
-			})
-        	.setNegativeButton(resources.getString(R.string.game_puzzle_lable_exitbtn), new DialogInterface.OnClickListener() {
-				@Override
-				public void onClick(DialogInterface dialog, int which) {
-					exitGame();
-				}
-			})
-        	.show();
-	}
 	
 	@Override
 	protected void saveConfiguration() {
 		switch(level){
-		case LEVEL_EASY:
+		case IGameProfile.LEVEL_EASY:
 			ConfigManager.getInstance().saveConfigure(ConfigManager.CONFIG_PUZZLE_GAME_LEVEL, "easy");
 			break;
-		case LEVEL_NORMAL:
+		case IGameProfile.LEVEL_NORMAL:
 			ConfigManager.getInstance().saveConfigure(ConfigManager.CONFIG_PUZZLE_GAME_LEVEL, "normal");
 			break;
-		case LEVEL_HARD:
+		case IGameProfile.LEVEL_HARD:
 			ConfigManager.getInstance().saveConfigure(ConfigManager.CONFIG_PUZZLE_GAME_LEVEL, "hard");
 			break;
 		default:
@@ -553,21 +308,18 @@ public class PuzzleGameActivity extends GameActivity implements IGameTimerListen
 	protected void loadConfiguration() {
 		String levelStr = ConfigManager.getInstance().getConfigure(ConfigManager.CONFIG_PUZZLE_GAME_LEVEL);
 		if(levelStr == null || levelStr.equals("")){
-			level = LEVEL_NORMAL;
-			profile = PuzzleProfile.NORMAL;
+			level = IGameProfile.LEVEL_NORMAL;
 		}else if(levelStr.equalsIgnoreCase("easy")){
-			level = LEVEL_EASY;
-			profile = PuzzleProfile.EASY;
+			level = IGameProfile.LEVEL_EASY;
 		}else if(levelStr.equalsIgnoreCase("normal")){
-			level = LEVEL_NORMAL;
-			profile = PuzzleProfile.NORMAL;
+			level = IGameProfile.LEVEL_NORMAL;
 		}else if(levelStr.equalsIgnoreCase("hard")){
-			level = LEVEL_HARD;
-			profile = PuzzleProfile.HARD;
+			level = IGameProfile.LEVEL_HARD;
 		}else{
-			level = LEVEL_NORMAL;
-			profile = PuzzleProfile.NORMAL;
+			level = IGameProfile.LEVEL_NORMAL;
 		}
+		
+		profile = getProfileFactory().getProfile(level); 
 		
 		String musicOnStr = ConfigManager.getInstance().getConfigure(ConfigManager.CONFIG_PUZZLE_GAME_MUSIC_ON);
 		if(musicOnStr != null && (musicOnStr.equals("1")||musicOnStr.equalsIgnoreCase("true"))){
@@ -603,7 +355,7 @@ public class PuzzleGameActivity extends GameActivity implements IGameTimerListen
 	@Override
 	protected AbstractGame createGameInstance() {
 		puzzlePicture = getPuzzlePicuture();		
-		return new Puzzle(puzzlePicture, profile.getDimension(), profile.getMaxTime());
+		return new Puzzle(puzzlePicture, ((PuzzleProfile)profile).getDimension(), ((PuzzleProfile)profile).getMaxTime());
 	}
 	
 	@Override
@@ -624,13 +376,23 @@ public class PuzzleGameActivity extends GameActivity implements IGameTimerListen
 	}
 	
 	@Override
+	protected IGameProfileFactory getProfileFactory() {
+		return new PuzzleProfileFactory();
+	}
+
+
+	@Override
+	protected int getMenuId() {
+		return R.menu.puzzle;
+	}
+
+	@Override
 	public void onFinished(AbstractGame game) {
 		super.onFinished(game);
 		controlBtn.setEnabled(false);
 		fullPicBtn.setEnabled(false);
 		puzzleView.removeAllViews();
 		puzzleView.invalidate();
-		showSucceedDialog();
 		playSFX(SFX_GAMEFINISH);
 	}
 
@@ -659,8 +421,8 @@ public class PuzzleGameActivity extends GameActivity implements IGameTimerListen
 	public void onStarted(AbstractGame game) {
 		playSFX(SFX_GAMESTART);
 		
-		counterProgress.setMax(profile.getMaxTime());
-		timeValueTV.setText(resources.getString(R.string.game_puzzle_lable_counter) +":(" + profile.getMaxTime() +"s)");
+		counterProgress.setMax(((PuzzleProfile)profile).getMaxTime());
+		timeValueTV.setText(resources.getString(R.string.game_puzzle_lable_counter) +":(" + ((PuzzleProfile)profile).getMaxTime() +"s)");
 		controlBtn.setEnabled(true);
 		controlBtn.setBackgroundResource(R.layout.selector_btn_pause);
 		controlTV.setText(resources.getString(R.string.game_puzzle_lable_pause));
@@ -692,7 +454,7 @@ public class PuzzleGameActivity extends GameActivity implements IGameTimerListen
 		puzzleView.removeAllViews();
 		puzzleView.invalidate();
 		playSFX(SFX_GAMEOVER);
-		showGameOverDialog();
+		
 	}
 
 	@Override
@@ -700,11 +462,11 @@ public class PuzzleGameActivity extends GameActivity implements IGameTimerListen
 		timeValueTV.setText(resources.getString(R.string.game_puzzle_lable_counter) +":(" + timeLeft +"s)");
 		counterProgress.setProgress(timeLeft);
 		
-		if(!timeUPPlayed && (timeLeft <= profile.getMaxTime() * 0.25)){
+		if(!timeUPPlayed && (timeLeft <= ((PuzzleProfile)profile).getMaxTime() * 0.25)){
 			playSFX(SFX_TIMEUP);
 			timeUPPlayed = true;
 		}
-		if(timeUPPlayed && (timeLeft > profile.getMaxTime() * 0.25)){
+		if(timeUPPlayed && (timeLeft > ((PuzzleProfile)profile).getMaxTime() * 0.25)){
 			timeUPPlayed = false;
 		}
 		
@@ -739,7 +501,7 @@ public class PuzzleGameActivity extends GameActivity implements IGameTimerListen
         	.setTitle(resources.getString(R.string.game_puzzle_info_resolvingprogress))
         	.setView(dialogView)
         	.setCancelable(false)
-        	.setPositiveButton(resources.getString(R.string.game_puzzle_lable_cancelbtn), new DialogInterface.OnClickListener(){
+        	.setPositiveButton(resources.getString(R.string.game_lable_cancelbtn), new DialogInterface.OnClickListener(){
 
 				@Override
 				public void onClick(DialogInterface dialog, int which) {
