@@ -1,9 +1,6 @@
 package org.slstudio.baby.game.tetris;
 
 import java.security.SecureRandom;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Random;
 import java.util.UUID;
 
 import org.slstudio.baby.game.AbstractGame;
@@ -21,7 +18,7 @@ import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
 
-public class TetrisGame extends AbstractGame{
+public class TetrisGame extends AbstractGame<ITetrisListener>{
 	public static final String TAG = "TetrisGame";
 	
 	public static final int MAP_COL_SIZE = 10;
@@ -64,8 +61,6 @@ public class TetrisGame extends AbstractGame{
 	
 	private long score = 0;
 	
-	private List<ITetrisListener> tetrisListener = new ArrayList<ITetrisListener>();
-	
 	
 	private Object lockObj = new Object();
 	
@@ -94,7 +89,7 @@ public class TetrisGame extends AbstractGame{
 							this.removeMessages(MSG_TETROMINO_MOVE);
 							this.sendEmptyMessageDelayed(MSG_TETROMINO_MOVE, (int)(TETROMINO_MOVE_INTERVAL / moveSpeed));
 							
-							for(ITetrisListener listener: tetrisListener){
+							for(ITetrisListener listener: customizedListeners){
 								listener.onNewTetromino();
 							}
 						}else{
@@ -136,13 +131,6 @@ public class TetrisGame extends AbstractGame{
 		return score;
 	}
 
-	public void addCustomizedListener(ITetrisListener listener){
-		tetrisListener.add(listener);
-	}
-	
-	public void removeCustomizedListener(ITetrisListener listener){
-		tetrisListener.remove(listener);
-	}
 	
 	public TetrisMap getCurrentMap() {
 		return currentMap;
@@ -178,7 +166,7 @@ public class TetrisGame extends AbstractGame{
 		int cleanedLine = -1;
 		while((cleanedLine = currentMap.clearLine())!= -1){
 			cleanedLineNumber ++;
-			for(ITetrisListener listener: tetrisListener){
+			for(ITetrisListener listener: customizedListeners){
 				listener.onLineCleaned(cleanedLine);
 			}
 		}
@@ -187,7 +175,7 @@ public class TetrisGame extends AbstractGame{
 		lastMoveMap.copyFrom(currentMap);
 		
 		if(cleanedLineNumber > 0){
-			for(ITetrisListener listener: tetrisListener){
+			for(ITetrisListener listener: customizedListeners){
 				listener.onLinesCleaned(cleanedLineNumber);
 			}
 		}
@@ -288,7 +276,7 @@ public class TetrisGame extends AbstractGame{
 				currentTetromino.putOnMap(currentMap);
 				lastMoveMap.copyFrom(currentMap);
 		
-				for(ITetrisListener listener: tetrisListener){
+				for(ITetrisListener listener: customizedListeners){
 					listener.onTetrominoRotated();
 				}
 				return true;
@@ -313,7 +301,7 @@ public class TetrisGame extends AbstractGame{
 					}
 				}
 				
-				for(ITetrisListener listener: tetrisListener){
+				for(ITetrisListener listener: customizedListeners){
 					listener.onTetrominoMove();
 				}
 				return true;
@@ -338,7 +326,7 @@ public class TetrisGame extends AbstractGame{
 					}
 				}
 				
-				for(ITetrisListener listener: tetrisListener){
+				for(ITetrisListener listener: customizedListeners){
 					listener.onTetrominoMove();
 				}
 				return true;
@@ -355,7 +343,7 @@ public class TetrisGame extends AbstractGame{
 				currentTetromino.putOnMap(currentMap);
 				lastMoveMap.copyFrom(currentMap);
 				
-				for(ITetrisListener listener: tetrisListener){
+				for(ITetrisListener listener: customizedListeners){
 					listener.onTetrominoMove();
 				}
 				return true;
@@ -384,7 +372,7 @@ public class TetrisGame extends AbstractGame{
 				currentTetromino.putOnMap(currentMap);
 				lastMoveMap.copyFrom(currentMap);
 				
-				for(ITetrisListener listener: tetrisListener){
+				for(ITetrisListener listener: customizedListeners){
 					listener.onTetrominoMove();
 				}
 			}

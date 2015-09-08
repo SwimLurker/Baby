@@ -6,13 +6,10 @@ import java.util.Stack;
 
 import org.slstudio.baby.config.ConfigManager;
 import org.slstudio.baby.data.PhotoManager;
-import org.slstudio.baby.game.AbstractGame;
 import org.slstudio.baby.game.GameActivity;
 import org.slstudio.baby.game.GameException;
-import org.slstudio.baby.game.IGameProfile;
 import org.slstudio.baby.game.IGameProfileFactory;
 import org.slstudio.baby.game.IGameTimerListener;
-import org.slstudio.baby.game.TimeableGame;
 import org.slstudio.baby.game.puzzle.AlgorithmNotReadyException;
 import org.slstudio.baby.game.puzzle.IDAStarWithWDAlgorithm;
 import org.slstudio.baby.game.puzzle.IProgressListener;
@@ -49,7 +46,7 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
-public class PuzzleGameActivity extends GameActivity implements IGameTimerListener, IPuzzleGameListener{
+public class PuzzleGameActivity extends GameActivity<Puzzle, PuzzleProfile> implements IGameTimerListener<Puzzle>, IPuzzleGameListener{
 	
 	public static final int MSG_RESOLVER_UPDATE = 10;
 	
@@ -73,6 +70,7 @@ public class PuzzleGameActivity extends GameActivity implements IGameTimerListen
 	private ImageView fullPicIV = null;
 	private ImageButton closeFullPicIV = null;
 	
+	
 	private boolean timeUPPlayed = false;
 	
 	private Bitmap puzzlePicture = null;
@@ -94,14 +92,14 @@ public class PuzzleGameActivity extends GameActivity implements IGameTimerListen
 					
 					if(resolveMoves!=null && resolveMoves.size()!=0){
 						DIRECTION direction  = resolveMoves.pop();
-						int from  = ((Puzzle)game).getBlankPieceIndex();
+						int from  = game.getBlankPieceIndex();
 						int to  = -1;
 						switch(direction){
 						case UP:
-							to = from - ((Puzzle)game).getDimension();
+							to = from - game.getDimension();
 							break;
 						case DOWN:
-							to = from + ((Puzzle)game).getDimension();
+							to = from + game.getDimension();
 							break;
 						case LEFT:
 							to = from -1;
@@ -110,7 +108,7 @@ public class PuzzleGameActivity extends GameActivity implements IGameTimerListen
 							to = from + 1;
 							break;
 						}
-						((Puzzle)game).movePiece(from, to);
+						game.movePiece(from, to);
 						resolveSteps ++;
 						this.sendEmptyMessageDelayed(MSG_RESOLVER_UPDATE, 500);
 					}else{
@@ -178,7 +176,7 @@ public class PuzzleGameActivity extends GameActivity implements IGameTimerListen
 			private void showPuzzlePicture() {
 				puzzleView.setVisibility(View.GONE);
 				
-				fullPicIV.setImageBitmap(((Puzzle)game).getOriginalBitmap());
+				fullPicIV.setImageBitmap(game.getOriginalBitmap());
 				fullPicLayout.setVisibility(View.VISIBLE);
 				
 				final AnimationSet as = new AnimationSet(false);
@@ -238,8 +236,6 @@ public class PuzzleGameActivity extends GameActivity implements IGameTimerListen
 			
 		};
 		ta.execute(new Object[0]);
-
-		startGame();
 		
 	}
 	
@@ -274,68 +270,13 @@ public class PuzzleGameActivity extends GameActivity implements IGameTimerListen
 				Toast.makeText(this, "Game is not running!", Toast.LENGTH_SHORT).show();
 			}
 			break;
-		}
-		
-		return super.onOptionsItemSelected(item);	
-	}
-	
-
-	
-	
-	@Override
-	protected void saveConfiguration() {
-		switch(level){
-		case IGameProfile.LEVEL_EASY:
-			ConfigManager.getInstance().saveConfigure(ConfigManager.CONFIG_PUZZLE_GAME_LEVEL, "easy");
-			break;
-		case IGameProfile.LEVEL_NORMAL:
-			ConfigManager.getInstance().saveConfigure(ConfigManager.CONFIG_PUZZLE_GAME_LEVEL, "normal");
-			break;
-		case IGameProfile.LEVEL_HARD:
-			ConfigManager.getInstance().saveConfigure(ConfigManager.CONFIG_PUZZLE_GAME_LEVEL, "hard");
-			break;
 		default:
-			ConfigManager.getInstance().saveConfigure(ConfigManager.CONFIG_PUZZLE_GAME_LEVEL, "normal");
-			break;
+			return super.onOptionsItemSelected(item);
 		}
-		
-		ConfigManager.getInstance().saveConfigure(ConfigManager.CONFIG_PUZZLE_GAME_MUSIC_ON, isBGMusicMute()?"0":"1");
-		ConfigManager.getInstance().saveConfigure(ConfigManager.CONFIG_PUZZLE_GAME_SFX_ON, isSFXMute()?"0":"1");
+		return true;
 	}
 	
 
-	@Override
-	protected void loadConfiguration() {
-		String levelStr = ConfigManager.getInstance().getConfigure(ConfigManager.CONFIG_PUZZLE_GAME_LEVEL);
-		if(levelStr == null || levelStr.equals("")){
-			level = IGameProfile.LEVEL_NORMAL;
-		}else if(levelStr.equalsIgnoreCase("easy")){
-			level = IGameProfile.LEVEL_EASY;
-		}else if(levelStr.equalsIgnoreCase("normal")){
-			level = IGameProfile.LEVEL_NORMAL;
-		}else if(levelStr.equalsIgnoreCase("hard")){
-			level = IGameProfile.LEVEL_HARD;
-		}else{
-			level = IGameProfile.LEVEL_NORMAL;
-		}
-		
-		profile = getProfileFactory().getProfile(level); 
-		
-		String musicOnStr = ConfigManager.getInstance().getConfigure(ConfigManager.CONFIG_PUZZLE_GAME_MUSIC_ON);
-		if(musicOnStr != null && (musicOnStr.equals("1")||musicOnStr.equalsIgnoreCase("true"))){
-			setBGMusicMute(false);
-		}else{
-			setBGMusicMute(true);
-		}
-		
-		String sfxOnStr = ConfigManager.getInstance().getConfigure(ConfigManager.CONFIG_PUZZLE_GAME_SFX_ON);
-		if(sfxOnStr != null && (sfxOnStr.equals("1")||sfxOnStr.equalsIgnoreCase("true"))){
-			setSFXMute(false);
-		}else{
-			setSFXMute(true);
-		}
-	}
-	
 	@Override
 	protected int getBGMResourceID() {
 		return R.raw.music_bg_puzzle;
@@ -353,20 +294,17 @@ public class PuzzleGameActivity extends GameActivity implements IGameTimerListen
 	}
 	
 	@Override
-	protected AbstractGame createGameInstance() {
+	protected Puzzle createGameInstance() {
 		puzzlePicture = getPuzzlePicuture();		
-		return new Puzzle(puzzlePicture, ((PuzzleProfile)profile).getDimension(), ((PuzzleProfile)profile).getMaxTime());
+		return new Puzzle(puzzlePicture, profile.getDimension(), profile.getMaxTime());
 	}
 	
 	@Override
 	protected boolean initGame(){
+		game.addGameTimerListener(this);
+		game.addCustomizedListener(this);
 		
-		Puzzle puzzle = (Puzzle)game;
-		
-		puzzle.addGameTimerListener(this);
-		puzzle.addCustomizedListener(this);
-		
-		puzzleView.setPuzzle(puzzle);
+		puzzleView.setPuzzle(game);
 		
 		timeUPPlayed = false;
 		
@@ -376,7 +314,7 @@ public class PuzzleGameActivity extends GameActivity implements IGameTimerListen
 	}
 	
 	@Override
-	protected IGameProfileFactory getProfileFactory() {
+	protected IGameProfileFactory<PuzzleProfile> getProfileFactory() {
 		return new PuzzleProfileFactory();
 	}
 
@@ -387,7 +325,7 @@ public class PuzzleGameActivity extends GameActivity implements IGameTimerListen
 	}
 
 	@Override
-	public void onFinished(AbstractGame game) {
+	public void onFinished(Puzzle game) {
 		super.onFinished(game);
 		controlBtn.setEnabled(false);
 		fullPicBtn.setEnabled(false);
@@ -398,7 +336,7 @@ public class PuzzleGameActivity extends GameActivity implements IGameTimerListen
 
 
 	@Override
-	public void onPaused(AbstractGame game) {
+	public void onPaused(Puzzle game) {
 		super.onPaused(game);
 		fullPicBtn.setEnabled(false);
 		controlBtn.setBackgroundResource(R.layout.selector_btn_resume);
@@ -408,7 +346,7 @@ public class PuzzleGameActivity extends GameActivity implements IGameTimerListen
 
 
 	@Override
-	public void onResumed(AbstractGame game) {
+	public void onResumed(Puzzle game) {
 		super.onResumed(game);
 		fullPicBtn.setEnabled(true);
 		controlBtn.setBackgroundResource(R.layout.selector_btn_pause);
@@ -418,16 +356,16 @@ public class PuzzleGameActivity extends GameActivity implements IGameTimerListen
 
 
 	@Override
-	public void onStarted(AbstractGame game) {
+	public void onStarted(Puzzle game) {
 		playSFX(SFX_GAMESTART);
 		
-		counterProgress.setMax(((PuzzleProfile)profile).getMaxTime());
-		timeValueTV.setText(resources.getString(R.string.game_puzzle_lable_counter) +":(" + ((PuzzleProfile)profile).getMaxTime() +"s)");
+		counterProgress.setMax(profile.getMaxTime());
+		timeValueTV.setText(resources.getString(R.string.game_puzzle_lable_counter) +":(" + profile.getMaxTime() +"s)");
 		controlBtn.setEnabled(true);
 		controlBtn.setBackgroundResource(R.layout.selector_btn_pause);
 		controlTV.setText(resources.getString(R.string.game_puzzle_lable_pause));
 		fullPicBtn.setEnabled(true);
-		moveCountTV.setText(resources.getString(R.string.game_puzzle_lable_movecount) +":" + ((Puzzle)game).getMoveCount() );
+		moveCountTV.setText(resources.getString(R.string.game_puzzle_lable_movecount) +":" + game.getMoveCount() );
 		puzzleView.invalidate();
 		
 		super.onStarted(game);
@@ -435,7 +373,7 @@ public class PuzzleGameActivity extends GameActivity implements IGameTimerListen
 
 
 	@Override
-	public void onStopped(AbstractGame game) {
+	public void onStopped(Puzzle game) {
 		super.onStopped(game);
 		
 		controlBtn.setEnabled(false);
@@ -446,7 +384,7 @@ public class PuzzleGameActivity extends GameActivity implements IGameTimerListen
 
 
 	@Override
-	public void onGameOver(AbstractGame game) {
+	public void onGameOver(Puzzle game) {
 		super.onGameOver(game);
 		
 		controlBtn.setEnabled(false);
@@ -458,15 +396,15 @@ public class PuzzleGameActivity extends GameActivity implements IGameTimerListen
 	}
 
 	@Override
-	public void onTimeLeftChanged(TimeableGame game, int timeLeft) {
+	public void onTimeLeftChanged(Puzzle game, int timeLeft) {
 		timeValueTV.setText(resources.getString(R.string.game_puzzle_lable_counter) +":(" + timeLeft +"s)");
 		counterProgress.setProgress(timeLeft);
 		
-		if(!timeUPPlayed && (timeLeft <= ((PuzzleProfile)profile).getMaxTime() * 0.25)){
+		if(!timeUPPlayed && (timeLeft <= profile.getMaxTime() * 0.25)){
 			playSFX(SFX_TIMEUP);
 			timeUPPlayed = true;
 		}
-		if(timeUPPlayed && (timeLeft > ((PuzzleProfile)profile).getMaxTime() * 0.25)){
+		if(timeUPPlayed && (timeLeft > profile.getMaxTime() * 0.25)){
 			timeUPPlayed = false;
 		}
 		
@@ -516,7 +454,7 @@ public class PuzzleGameActivity extends GameActivity implements IGameTimerListen
     	
     	task = new PuzzleResolverAsyncTask(dialog);
     	
-		task.execute(new Puzzle[]{(Puzzle)game});
+		task.execute(new Puzzle[]{game});
 	}
 	
 	private void enableInput() {
@@ -601,6 +539,15 @@ public class PuzzleGameActivity extends GameActivity implements IGameTimerListen
 			resolver.setCancelled(true);
 		}
 	}
+
+	@Override
+	protected void initConfigItems() {
+		configItems.put(CONFIGITEM_LEVEL, ConfigManager.CONFIG_PUZZLE_GAME_LEVEL);
+		configItems.put(CONFIGITEM_MUSIC, ConfigManager.CONFIG_PUZZLE_GAME_MUSIC_ON);
+		configItems.put(CONFIGITEM_SFX, ConfigManager.CONFIG_PUZZLE_GAME_SFX_ON);
+	}
+
+	
 
 	
 

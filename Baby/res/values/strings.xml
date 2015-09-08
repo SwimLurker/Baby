@@ -11,6 +11,7 @@
     <string name="gridview_icontext_lianliankan">Game-连连看</string>
     <string name="gridview_icontext_puzzle">Game-拼图</string>
     <string name="gridview_icontext_tetris">Game-俄罗斯方块</string>
+    <string name="gridview_icontext_rsp">Game-猜拳</string>
     <string name="title_aboutdialog">About</string>
     <string name="lable_closebtn">Close</string>
 </resources>

@@ -39,11 +39,12 @@ public class MainActivity extends Activity {
 		
 		prepareData(this);
 		
-		images = new int[]{R.drawable.icon_pictures, R.drawable.icon_lianliankan, R.drawable.icon_puzzle, R.drawable.icon_tetris};
+		images = new int[]{R.drawable.icon_pictures, R.drawable.icon_lianliankan, R.drawable.icon_puzzle, R.drawable.icon_tetris, R.drawable.icon_rsp};
 		texts = new String[]{ resources.getString(R.string.gridview_icontext_pictures), 
 				resources.getString(R.string.gridview_icontext_lianliankan),
 				resources.getString(R.string.gridview_icontext_puzzle),
-				resources.getString(R.string.gridview_icontext_tetris)};
+				resources.getString(R.string.gridview_icontext_tetris),
+				resources.getString(R.string.gridview_icontext_rsp)};
 		
 		GridView gridView = (GridView)findViewById(R.id.main_gridview);
 		
@@ -77,6 +78,9 @@ public class MainActivity extends Activity {
 					break;
 				case R.drawable.icon_tetris:
 					startGame_Tetris();
+					break;
+				case R.drawable.icon_rsp:
+					startGame_RSP();
 					break;
 				}
 			}
@@ -138,6 +142,12 @@ public class MainActivity extends Activity {
 	private void startGame_Tetris() {
 		Intent gameIntent = new Intent();
 		gameIntent.setAction("org.slstudio.baby.TetrisGameActivity");
+		startActivity(gameIntent);
+	}
+	
+	private void startGame_RSP() {
+		Intent gameIntent = new Intent();
+		gameIntent.setAction("org.slstudio.baby.RSPGameActivity");
 		startActivity(gameIntent);
 	}
 	

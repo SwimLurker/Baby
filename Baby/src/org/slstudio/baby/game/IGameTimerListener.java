@@ -1,7 +1,7 @@
 package org.slstudio.baby.game;
 
 
-public interface IGameTimerListener {
-	public void onTimeLeftChanged(TimeableGame game, int timeLeft);
+public interface IGameTimerListener<T extends TimeableGame> {
+	public void onTimeLeftChanged(T timeableGame, int timeLeft);
 	
 }

@@ -1,7 +1,9 @@
 package org.slstudio.baby.game.lianliankan;
 
+import org.slstudio.baby.game.ICustomizedGameListener;
 
-public interface ILianLianKanListener{
+
+public interface ILianLianKanListener extends ICustomizedGameListener{
 	public static final int BLOCK_SELECTED = 1;
 	public static final int BLOCK_UNSELECTED = 2;
 	public static final int BLOCK_REMOVED = 3;

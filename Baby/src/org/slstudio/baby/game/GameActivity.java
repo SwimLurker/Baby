@@ -1,10 +1,10 @@
 package org.slstudio.baby.game;
 
 import java.lang.reflect.Field;
+import java.util.HashMap;
 
-import org.slstudio.baby.PuzzleGameActivity;
 import org.slstudio.baby.R;
-import org.slstudio.baby.game.puzzle.PuzzleProfile;
+import org.slstudio.baby.config.ConfigManager;
 import org.slstudio.baby.game.service.BGMusicService;
 import org.slstudio.baby.game.util.SoundPlayer;
 
@@ -25,11 +25,15 @@ import android.view.View;
 import android.widget.RadioButton;
 import android.widget.ToggleButton;
 
-public abstract class GameActivity  extends Activity implements IGameListener{
+public abstract class GameActivity<T extends AbstractGame<?>, P extends IGameProfile>  extends Activity implements IGameListener<T>{
+	
+	public static final String CONFIGITEM_LEVEL = "CONFIGITEM_LEVEL";
+	public static final String CONFIGITEM_MUSIC = "CONFIGITEM_MUSIC";
+	public static final String CONFIGITEM_SFX = "CONFIGITEM_SFX";
 	
 	protected int level = IGameProfile.LEVEL_EASY;
 	
-	protected IGameProfile profile = null;
+	protected P profile = null;
 	
 	protected SoundPlayer soundPlayer = null;
 	
@@ -38,7 +42,9 @@ public abstract class GameActivity  extends Activity implements IGameListener{
 	private boolean isSFXMute = true;
 	private boolean isBGMusicMute = true;
 	
-	protected AbstractGame game = null;
+	protected T game = null;
+	
+	protected HashMap<String, String> configItems = new HashMap<String, String>();
 	
 	private ServiceConnection conn = new ServiceConnection(){
 		@Override
@@ -51,7 +57,12 @@ public abstract class GameActivity  extends Activity implements IGameListener{
 			musicService = ((BGMusicService.BGMusicBinder)binder).getService();
 		}
 	};
-	
+
+	public GameActivity() {
+		super();
+		initConfigItems();	
+	}
+
 
 	public boolean isSFXMute() {
 		return isSFXMute;
@@ -83,7 +94,7 @@ public abstract class GameActivity  extends Activity implements IGameListener{
 	}
 
 
-	public AbstractGame getGame() {
+	public T getGame() {
 		return game;
 	}
 
@@ -97,6 +108,13 @@ public abstract class GameActivity  extends Activity implements IGameListener{
 		initSFX();
 	}
 	
+	
+	@Override
+	protected void onPostCreate(Bundle savedInstanceState) {
+		startGame();
+		super.onPostCreate(savedInstanceState);
+	}
+
 
 	@Override
 	public boolean onPrepareOptionsMenu(Menu menu){
@@ -352,7 +370,7 @@ public abstract class GameActivity  extends Activity implements IGameListener{
 					RadioButton hardRB = (RadioButton)dialogView.findViewById(R.id.game_settings_level_hard);
 					
 					int newLevel = IGameProfile.LEVEL_NORMAL;
-					IGameProfile newProfile = getProfileFactory().getProfile(IGameProfile.LEVEL_NORMAL);
+					P newProfile = getProfileFactory().getProfile(IGameProfile.LEVEL_NORMAL);
 					if(easyRB.isChecked()){
 						newLevel = IGameProfile.LEVEL_EASY;
 						newProfile = getProfileFactory().getProfile(IGameProfile.LEVEL_EASY) ;
@@ -466,7 +484,78 @@ public abstract class GameActivity  extends Activity implements IGameListener{
         	.show();
 	}
 
-	protected abstract AbstractGame createGameInstance();
+	protected void saveConfiguration() {
+		if(getConfigItemName(CONFIGITEM_LEVEL) != null){
+			switch(level){
+			case IGameProfile.LEVEL_EASY:
+				ConfigManager.getInstance().saveConfigure(getConfigItemName(CONFIGITEM_LEVEL), "easy");
+				break;
+			case IGameProfile.LEVEL_NORMAL:
+				ConfigManager.getInstance().saveConfigure(getConfigItemName(CONFIGITEM_LEVEL), "normal");
+				break;
+			case IGameProfile.LEVEL_HARD:
+				ConfigManager.getInstance().saveConfigure(getConfigItemName(CONFIGITEM_LEVEL), "hard");
+				break;
+			default:
+				ConfigManager.getInstance().saveConfigure(getConfigItemName(CONFIGITEM_LEVEL), "normal");
+				break;
+			}
+		}
+		
+		if(getConfigItemName(CONFIGITEM_MUSIC) != null){
+			ConfigManager.getInstance().saveConfigure(ConfigManager.CONFIG_PUZZLE_GAME_MUSIC_ON, isBGMusicMute()?"0":"1");
+		}
+		if(getConfigItemName(CONFIGITEM_SFX) != null){
+			ConfigManager.getInstance().saveConfigure(ConfigManager.CONFIG_PUZZLE_GAME_SFX_ON, isSFXMute()?"0":"1");
+		}
+		
+	}
+	
+
+	protected void loadConfiguration() {
+		if(getConfigItemName(CONFIGITEM_LEVEL) != null){
+			String levelStr = ConfigManager.getInstance().getConfigure(getConfigItemName(CONFIGITEM_LEVEL));
+			if(levelStr == null || levelStr.equals("")){
+				level = IGameProfile.LEVEL_NORMAL;
+			}else if(levelStr.equalsIgnoreCase("easy")){
+				level = IGameProfile.LEVEL_EASY;
+			}else if(levelStr.equalsIgnoreCase("normal")){
+				level = IGameProfile.LEVEL_NORMAL;
+			}else if(levelStr.equalsIgnoreCase("hard")){
+				level = IGameProfile.LEVEL_HARD;
+			}else{
+				level = IGameProfile.LEVEL_NORMAL;
+			}
+			profile = getProfileFactory().getProfile(level); 
+		}
+		
+		if(getConfigItemName(CONFIGITEM_MUSIC) != null){
+			String musicOnStr = ConfigManager.getInstance().getConfigure(getConfigItemName(CONFIGITEM_MUSIC));
+			if(musicOnStr != null && (musicOnStr.equals("1")||musicOnStr.equalsIgnoreCase("true"))){
+				setBGMusicMute(false);
+			}else{
+				setBGMusicMute(true);
+			}
+		}
+		if(getConfigItemName(CONFIGITEM_SFX) != null){
+			String sfxOnStr = ConfigManager.getInstance().getConfigure(getConfigItemName(CONFIGITEM_SFX));
+			if(sfxOnStr != null && (sfxOnStr.equals("1")||sfxOnStr.equalsIgnoreCase("true"))){
+				setSFXMute(false);
+			}else{
+				setSFXMute(true);
+			}
+		}
+	}
+	
+	protected String getConfigItemName(String type){
+		if(configItems.containsKey(type)){
+			return configItems.get(type);
+		}else{
+			return null;
+		}
+	}
+	
+	protected abstract T createGameInstance();
 	
 	protected abstract boolean initGame();
 	
@@ -474,47 +563,45 @@ public abstract class GameActivity  extends Activity implements IGameListener{
 	
 	protected abstract int getBGMResourceID();
 	
-	protected abstract void loadConfiguration();
+	protected abstract void initConfigItems();
 	
-	protected abstract void saveConfiguration();
-	
-	protected abstract IGameProfileFactory getProfileFactory();
+	protected abstract IGameProfileFactory<P> getProfileFactory();
 	
 	protected abstract int getMenuId();
 	
 	@Override
-	public void onFinished(AbstractGame game) {
+	public void onFinished(T game) {
 		stopPlayBGMusic();
 		showSucceedDialog();
 	}
 
 
 	@Override
-	public void onPaused(AbstractGame game) {
+	public void onPaused(T game) {
 		pauseBGMusic();
 	}
 
 
 	@Override
-	public void onResumed(AbstractGame game) {
+	public void onResumed(T game) {
 		resumeBGMusic();
 	}
 
 
 	@Override
-	public void onStarted(AbstractGame game) {
+	public void onStarted(T game) {
 		startPlayBGMusic();
 	}
 
 
 	@Override
-	public void onStopped(AbstractGame game) {
+	public void onStopped(T game) {
 		stopPlayBGMusic();
 	}
 
 
 	@Override
-	public void onGameOver(AbstractGame game) {
+	public void onGameOver(T game) {
 		stopPlayBGMusic();
 		showGameOverDialog();
 	}

@@ -3,10 +3,7 @@ package org.slstudio.baby.game.puzzle;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
-import java.util.Stack;
-
 import org.slstudio.baby.game.GameException;
-import org.slstudio.baby.game.IGameTimerListener;
 import org.slstudio.baby.game.TimeableGame;
 
 import android.graphics.Bitmap;
@@ -14,11 +11,9 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Rect;
-import android.os.Handler;
-import android.os.Message;
 import android.util.Log;
 
-public class Puzzle extends TimeableGame{
+public class Puzzle extends TimeableGame<IPuzzleGameListener>{
 	
 	
 	private static Paint pieceFramePaint = null;
@@ -28,7 +23,6 @@ public class Puzzle extends TimeableGame{
 	private int dimension = 3;
 	private int moveCount = 0;
 	
-	private List<IPuzzleGameListener> puzzleListener = new ArrayList<IPuzzleGameListener>();
 	
 	private String successString = null;
 
@@ -64,14 +58,6 @@ public class Puzzle extends TimeableGame{
 
 	public int getDimension() {
 		return dimension;
-	}
-	
-	public void addCustomizedListener(IPuzzleGameListener listener){
-		puzzleListener.add(listener);
-	}
-	
-	public void removeCustomizedListener(IPuzzleGameListener listener){
-		puzzleListener.remove(listener);
 	}
 
 	@Override
@@ -309,7 +295,7 @@ public class Puzzle extends TimeableGame{
 		
 		moveCount ++;
 		
-		for(IPuzzleGameListener listener: puzzleListener){
+		for(IPuzzleGameListener listener: customizedListeners){
 			listener.onPieceMoved(this, fromIndex, toIndex);
 		}
 		

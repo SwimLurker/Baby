@@ -3,10 +3,10 @@ package org.slstudio.baby.game.lianliankan;
 import org.slstudio.baby.game.IGameProfile;
 import org.slstudio.baby.game.IGameProfileFactory;
 
-public class LianLianKanProfileFactory implements IGameProfileFactory{
+public class LianLianKanProfileFactory implements IGameProfileFactory<LianLianKanProfile>{
 	
 	@Override
-	public IGameProfile getProfile(int level) {
+	public LianLianKanProfile getProfile(int level) {
 		switch(level){
 		case IGameProfile.LEVEL_EASY:
 			return LianLianKanProfile.EASY;

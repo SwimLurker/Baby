@@ -31,6 +31,10 @@ public class ConfigManager {
 	public static String CONFIG_TETRIS_GAME_SFX_ON = "game_tetris_sfx";
 	public static String CONFIG_TETRIS_GAME_LEVEL = "game_tetris_level";
 	
+	public static String CONFIG_RSP_GAME_MUSIC_ON = "game_rsp_music";
+	public static String CONFIG_RSP_GAME_SFX_ON = "game_rsp_sfx";
+	public static String CONFIG_RSP_GAME_LEVEL = "game_rsp_level";
+	
 	private static ConfigManager _instance = null;
 	
 	private boolean bLoaded = false;

@@ -3,10 +3,10 @@ package org.slstudio.baby.game.puzzle;
 import org.slstudio.baby.game.IGameProfile;
 import org.slstudio.baby.game.IGameProfileFactory;
 
-public class PuzzleProfileFactory implements IGameProfileFactory{
+public class PuzzleProfileFactory implements IGameProfileFactory<PuzzleProfile>{
 
 	@Override
-	public IGameProfile getProfile(int level) {
+	public PuzzleProfile getProfile(int level) {
 		switch(level){
 		case IGameProfile.LEVEL_EASY:
 			return PuzzleProfile.EASY;

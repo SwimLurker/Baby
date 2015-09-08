@@ -6,7 +6,7 @@ import java.util.List;
 import android.os.Handler;
 import android.os.Message;
 
-public abstract class TimeableGame extends AbstractGame {
+public abstract class TimeableGame<T extends ICustomizedGameListener> extends AbstractGame<T> {
 	
 	public static final int MSG_COUNTER = 1;
 	

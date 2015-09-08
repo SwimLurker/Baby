@@ -1,6 +1,8 @@
 package org.slstudio.baby.game.tetris;
 
-public interface ITetrisListener {
+import org.slstudio.baby.game.ICustomizedGameListener;
+
+public interface ITetrisListener extends ICustomizedGameListener{
 	public void onNewTetromino();
 	public void onTetrominoMove();
 	public void onTetrominoRotated();

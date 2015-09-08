@@ -20,7 +20,7 @@ import android.graphics.BitmapFactory;
 import android.util.Log;
 
 
-public class LianLianKan extends TimeableGame{
+public class LianLianKan extends TimeableGame<ILianLianKanListener> {
 	
 	
 	private LianLianKanMap map = null;
@@ -30,8 +30,6 @@ public class LianLianKan extends TimeableGame{
 	private Path currentPath = null;
 	
 	private Path hintPath = null;
-	
-	private List<ILianLianKanListener> lianliankanListeners = new ArrayList<ILianLianKanListener>();
 	
 	private boolean showHint = false;
 	
@@ -93,14 +91,6 @@ public class LianLianKan extends TimeableGame{
 
 	public Path getHintPath() {
 		return hintPath;
-	}
-	
-	public void addCustomizedListener(ILianLianKanListener listener){
-		lianliankanListeners.add(listener);
-	}
-	
-	public void removeCustomizedListener(ILianLianKanListener listener){
-		lianliankanListeners.remove(listener);
 	}
 
 	@Override
@@ -218,7 +208,7 @@ public class LianLianKan extends TimeableGame{
 	
 	
 	public void gameDeadLock(){
-		for(ILianLianKanListener listener: lianliankanListeners){
+		for(ILianLianKanListener listener: customizedListeners){
 			listener.onDeadLock(this);
 		}
 	}
@@ -236,20 +226,20 @@ public class LianLianKan extends TimeableGame{
 		if(selectedBlock == null){
 			//select new block
 			selectedBlock = newSelectedBlock;
-			for(ILianLianKanListener l: lianliankanListeners){
+			for(ILianLianKanListener l: customizedListeners){
 				l.onBlockStateChanged(this, ILianLianKanListener.BLOCK_SELECTED, newSelectedBlock);
 			}
 		}else{
 			if(selectedBlock.sameAs(newSelectedBlock)){
 				selectedBlock = null;
-				for(ILianLianKanListener l: lianliankanListeners){
+				for(ILianLianKanListener l: customizedListeners){
 					l.onBlockStateChanged(this, ILianLianKanListener.BLOCK_UNSELECTED, oldSelectedBlock);
 				}
 			}else{
 				//first unselected old block
 				selectedBlock = null;
 				
-				for(ILianLianKanListener l: lianliankanListeners){
+				for(ILianLianKanListener l: customizedListeners){
 					l.onBlockStateChanged(this, ILianLianKanListener.BLOCK_UNSELECTED, oldSelectedBlock);
 				}
 				
@@ -261,7 +251,7 @@ public class LianLianKan extends TimeableGame{
 				
 				//select new block
 				selectedBlock = newSelectedBlock;
-				for(ILianLianKanListener l: lianliankanListeners){
+				for(ILianLianKanListener l: customizedListeners){
 					l.onBlockStateChanged(this, ILianLianKanListener.BLOCK_SELECTED, newSelectedBlock);
 				}
 				
@@ -278,11 +268,11 @@ public class LianLianKan extends TimeableGame{
 			selectedBlock = null;
 			
 			map.removeBlock(startBlock);
-			for(ILianLianKanListener l: lianliankanListeners){
+			for(ILianLianKanListener l: customizedListeners){
 				l.onBlockStateChanged(this, ILianLianKanListener.BLOCK_REMOVED, startBlock);
 			}
 			map.removeBlock(endBlock);
-			for(ILianLianKanListener l: lianliankanListeners){
+			for(ILianLianKanListener l: customizedListeners){
 				l.onBlockStateChanged(this, ILianLianKanListener.BLOCK_REMOVED, endBlock);
 			}
 			
@@ -373,7 +363,7 @@ public class LianLianKan extends TimeableGame{
 			selectedBlock = null;
 			if(hintPath==null || hintPath.getStartBlock().isEmpty() || hintPath.getEndBlock().isEmpty()){
 				hintPath = map.findHintPath();
-				for(ILianLianKanListener listener: lianliankanListeners){
+				for(ILianLianKanListener listener: customizedListeners){
 					listener.onNewHintPathFound(this, hintPath);
 				}
 			}
@@ -382,13 +372,13 @@ public class LianLianKan extends TimeableGame{
 			if(hintPath==null || hintPath.getStartBlock().isEmpty() || hintPath.getEndBlock().isEmpty()){
 				hintPath = map.findHintPath();
 				hintNumber--;
-				for(ILianLianKanListener listener: lianliankanListeners){
+				for(ILianLianKanListener listener: customizedListeners){
 					listener.onNewHintPathFound(this, hintPath);
 				}
 			}
 		}
 		
-		for(ILianLianKanListener listener: lianliankanListeners){
+		for(ILianLianKanListener listener: customizedListeners){
 			listener.onGetHintPath(this, hintPath);
 		}
 	}

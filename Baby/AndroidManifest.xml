@@ -57,6 +57,14 @@
             </intent-filter>
         </activity>
         <activity
+            android:name="org.slstudio.baby.RSPGameActivity" 
+            android:configChanges="keyboardHidden|orientation|screenSize">
+            <intent-filter>
+                <action android:name="org.slstudio.baby.RSPGameActivity" />
+                <category android:name="android.intent.category.DEFAULT" /> 
+            </intent-filter>
+        </activity>
+        <activity
             android:name="org.slstudio.baby.PictureListActivity" 
             android:configChanges="orientation|keyboard|screenSize">
             <intent-filter>

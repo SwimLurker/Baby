@@ -5,9 +5,7 @@ import java.util.Random;
 
 import org.slstudio.baby.config.ConfigManager;
 import org.slstudio.baby.data.PhotoManager;
-import org.slstudio.baby.game.AbstractGame;
 import org.slstudio.baby.game.GameActivity;
-import org.slstudio.baby.game.IGameProfile;
 import org.slstudio.baby.game.IGameProfileFactory;
 import org.slstudio.baby.game.tetris.ITetrisListener;
 import org.slstudio.baby.game.tetris.TetrisGame;
@@ -17,9 +15,7 @@ import org.slstudio.baby.game.tetris.ui.TetrisMapView;
 import org.slstudio.baby.game.tetris.ui.TetrominoView;
 import org.slstudio.baby.util.BitmapUtil;
 
-import android.content.res.Configuration;
 import android.content.res.Resources;
-import android.graphics.Bitmap;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.util.Log;
@@ -29,9 +25,8 @@ import android.view.View.OnClickListener;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.TextView;
-import android.widget.Toast;
 
-public class TetrisGameActivity extends GameActivity implements ITetrisListener{
+public class TetrisGameActivity extends GameActivity<TetrisGame, TetrisProfile> implements ITetrisListener{
 
 	public static final String TAG = "TetrisGameActivity";
 	
@@ -86,20 +81,14 @@ public class TetrisGameActivity extends GameActivity implements ITetrisListener{
 			
 		});
 		
-		
-		startGame();
-		
-		scoreTV.setText(resources.getString(R.string.game_tetris_lable_score) + Long.toString(((TetrisGame)game).getScore()));
-		leftBlockCountTV.setText(resources.getString(R.string.game_tetris_lable_blocknumber) + Long.toString(((TetrisGame)game).getTetrominoCount()));
-		
 	}
 	
 	
 	@Override
 	public void onNewTetromino() {
 		playSFX(SFX_TETROMINODOWN);
-		leftBlockCountTV.setText(resources.getString(R.string.game_tetris_lable_blocknumber) + Long.toString(((TetrisGame)game).getTetrominoCount()));
-		nextTetrominoView.setTetromino(((TetrisGame)game).getNextTetromino());
+		leftBlockCountTV.setText(resources.getString(R.string.game_tetris_lable_blocknumber) + Long.toString(game.getTetrominoCount()));
+		nextTetrominoView.setTetromino(game.getNextTetromino());
 		tetrisMapView.invalidate();
 		nextTetrominoView.invalidate();
 	}
@@ -122,12 +111,12 @@ public class TetrisGameActivity extends GameActivity implements ITetrisListener{
 	@Override
 	public void onLinesCleaned(int cleanedLineNumber) {
 		playSFX(SFX_LINECLEAR);
-		scoreTV.setText(resources.getString(R.string.game_tetris_lable_score) + Long.toString(((TetrisGame)game).getScore()));
+		scoreTV.setText(resources.getString(R.string.game_tetris_lable_score) + Long.toString(game.getScore()));
 		tetrisMapView.invalidate();
 	}
 	
 	@Override
-	public void onFinished(AbstractGame game) {
+	public void onFinished(TetrisGame game) {
 		super.onFinished(game);
 		controlBtn.setEnabled(false);
 		tetrisMapView.invalidate();
@@ -135,14 +124,14 @@ public class TetrisGameActivity extends GameActivity implements ITetrisListener{
 	}
 	
 	@Override
-	public void onPaused(AbstractGame game) {
+	public void onPaused(TetrisGame game) {
 		super.onPaused(game);
 		controlBtn.setBackgroundResource(R.layout.selector_btn_resume);
 		controlTV.setText(resources.getString(R.string.game_puzzle_lable_resume));
 		tetrisMapView.invalidate();
 	}
 	@Override
-	public void onResumed(AbstractGame game) {
+	public void onResumed(TetrisGame game) {
 		super.onResumed(game);
 		controlBtn.setBackgroundResource(R.layout.selector_btn_pause);
 		controlTV.setText(resources.getString(R.string.game_puzzle_lable_pause));
@@ -150,9 +139,13 @@ public class TetrisGameActivity extends GameActivity implements ITetrisListener{
 	}
 	
 	@Override
-	public void onStarted(AbstractGame game) {
+	public void onStarted(TetrisGame game) {
 		Log.d(TAG, "play start sfx");
 		playSFX(SFX_GAMESTART);
+		
+		scoreTV.setText(resources.getString(R.string.game_tetris_lable_score) + Long.toString(game.getScore()));
+		leftBlockCountTV.setText(resources.getString(R.string.game_tetris_lable_blocknumber) + Long.toString(game.getTetrominoCount()));
+		
 		controlBtn.setEnabled(true);
 		controlBtn.setBackgroundResource(R.layout.selector_btn_pause);
 		controlTV.setText(resources.getString(R.string.game_puzzle_lable_pause));
@@ -161,14 +154,14 @@ public class TetrisGameActivity extends GameActivity implements ITetrisListener{
 	}
 	
 	@Override
-	public void onStopped(AbstractGame game) {
+	public void onStopped(TetrisGame game) {
 		super.onStopped(game);
 		controlBtn.setEnabled(false);
 		tetrisMapView.invalidate();
 	}
 	
 	@Override
-	public void onGameOver(AbstractGame game) {
+	public void onGameOver(TetrisGame game) {
 		super.onGameOver(game);
 		controlBtn.setEnabled(false);
 		playSFX(SFX_GAMEOVER);
@@ -176,59 +169,8 @@ public class TetrisGameActivity extends GameActivity implements ITetrisListener{
 	}
 	
 	@Override
-	protected void loadConfiguration() {
-		String levelStr = ConfigManager.getInstance().getConfigure(ConfigManager.CONFIG_TETRIS_GAME_LEVEL);
-		if(levelStr == null || levelStr.equals("")){
-			level = IGameProfile.LEVEL_NORMAL;
-		}else if(levelStr.equalsIgnoreCase("easy")){
-			level = IGameProfile.LEVEL_EASY;
-		}else if(levelStr.equalsIgnoreCase("normal")){
-			level = IGameProfile.LEVEL_NORMAL;
-		}else if(levelStr.equalsIgnoreCase("hard")){
-			level = IGameProfile.LEVEL_HARD;
-		}else{
-			level = IGameProfile.LEVEL_NORMAL;
-		}
-		profile = getProfileFactory().getProfile(level);
-		
-		String musicOnStr = ConfigManager.getInstance().getConfigure(ConfigManager.CONFIG_TETRIS_GAME_MUSIC_ON);
-		if(musicOnStr != null && (musicOnStr.equals("1")||musicOnStr.equalsIgnoreCase("true"))){
-			setBGMusicMute(false);
-		}else{
-			setBGMusicMute(true);
-		}
-		
-		String sfxOnStr = ConfigManager.getInstance().getConfigure(ConfigManager.CONFIG_TETRIS_GAME_SFX_ON);
-		if(sfxOnStr != null && (sfxOnStr.equals("1")||sfxOnStr.equalsIgnoreCase("true"))){
-			setSFXMute(false);
-		}else{
-			setSFXMute(true);
-		}
-	}
-	@Override
-	protected void saveConfiguration() {
-		switch(level){
-		case IGameProfile.LEVEL_EASY:
-			ConfigManager.getInstance().saveConfigure(ConfigManager.CONFIG_TETRIS_GAME_LEVEL, "easy");
-			break;
-		case IGameProfile.LEVEL_NORMAL:
-			ConfigManager.getInstance().saveConfigure(ConfigManager.CONFIG_TETRIS_GAME_LEVEL, "normal");
-			break;
-		case IGameProfile.LEVEL_HARD:
-			ConfigManager.getInstance().saveConfigure(ConfigManager.CONFIG_TETRIS_GAME_LEVEL, "hard");
-			break;
-		default:
-			ConfigManager.getInstance().saveConfigure(ConfigManager.CONFIG_TETRIS_GAME_LEVEL, "normal");
-			break;
-		}
-		
-		ConfigManager.getInstance().saveConfigure(ConfigManager.CONFIG_TETRIS_GAME_MUSIC_ON, isBGMusicMute()?"0":"1");
-		ConfigManager.getInstance().saveConfigure(ConfigManager.CONFIG_TETRIS_GAME_SFX_ON, isSFXMute()?"0":"1");
-	}
-	
-	@Override
-	protected AbstractGame createGameInstance() {
-		return new TetrisGame(((TetrisProfile)profile).getTetrominoNumber(), ((TetrisProfile)profile).getMoveSpeed());
+	protected TetrisGame createGameInstance() {
+		return new TetrisGame(profile.getTetrominoNumber(), profile.getMoveSpeed());
 	}
 	
 	@Override
@@ -238,9 +180,9 @@ public class TetrisGameActivity extends GameActivity implements ITetrisListener{
 		if(bk != null){
 			layout.setBackgroundDrawable(bk);
 		}
-		TetrisGame tetris = (TetrisGame)game;
-		tetris.addCustomizedListener(this);
-		tetrisMapView.setGame(tetris);
+		
+		game.addCustomizedListener(this);
+		tetrisMapView.setGame(game);
 		return true;
 	}
 	
@@ -264,7 +206,7 @@ public class TetrisGameActivity extends GameActivity implements ITetrisListener{
 	}
 	
 	@Override
-	protected IGameProfileFactory getProfileFactory() {
+	protected IGameProfileFactory<TetrisProfile> getProfileFactory() {
 		return new TetrisProfileFactory();
 	}
 	@Override
@@ -281,5 +223,13 @@ public class TetrisGameActivity extends GameActivity implements ITetrisListener{
 		}
 		return null;
 		
+	}
+
+
+	@Override
+	protected void initConfigItems() {
+		configItems.put(CONFIGITEM_LEVEL, ConfigManager.CONFIG_TETRIS_GAME_LEVEL);
+		configItems.put(CONFIGITEM_MUSIC, ConfigManager.CONFIG_TETRIS_GAME_MUSIC_ON);
+		configItems.put(CONFIGITEM_SFX, ConfigManager.CONFIG_TETRIS_GAME_SFX_ON);
 	}
 }

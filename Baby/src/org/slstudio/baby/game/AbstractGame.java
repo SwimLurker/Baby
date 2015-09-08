@@ -6,7 +6,7 @@ import java.util.List;
 import org.slstudio.baby.game.GameException;
 import org.slstudio.baby.game.IGameListener;
 
-public abstract class AbstractGame {
+public abstract class AbstractGame<T extends ICustomizedGameListener> {
 	public static final int GAME_NOTSTART = 0;
 	public static final int GAME_FINISHED = 1;
 	public static final int GAME_OVER=2;
@@ -17,6 +17,7 @@ public abstract class AbstractGame {
 	
 	private List<IGameListener> listeners = new ArrayList<IGameListener>();
 	
+	protected List<T> customizedListeners = new ArrayList<T>();
 	
 	public void initGame() throws GameException{
 		isStarted = false;
@@ -44,12 +45,21 @@ public abstract class AbstractGame {
 		return !isStarted && (gameResult == GAME_FINISHED);
 	}
 	
-	public void addListener(IGameListener listener){
+	public void addListener(IGameListener  listener){
 		listeners.add(listener);
 	}
 	
 	public void removeListener(IGameListener listener){
 		listeners.remove(listener);
+	}
+	
+	
+	public void addCustomizedListener(T listener){
+		customizedListeners.add(listener);
+	}
+	
+	public void removeCustomizedListener(T listener){
+		customizedListeners.remove(listener);
 	}
 	
 	public void pause() {

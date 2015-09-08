@@ -1,0 +1,295 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:slstudio="http://schemas.slstudio.org/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#a04200">
+	<RelativeLayout 
+	    android:id="@+id/game_rsp_layout_lifebar_p1"
+	    android:layout_width="fill_parent"
+   		android:layout_height="wrap_content"
+   		android:layout_alignParentBottom="true"
+   		android:layout_alignParentLeft="true"
+   		android:layout_margin="10dp" >
+
+   		<ImageView 
+   		    android:id="@+id/game_rsp_p1_lifebar_lable"
+   		    android:layout_width="wrap_content"
+   		    android:layout_height="wrap_content"
+   		    android:background="@drawable/lifebar_lable" 
+   		    android:layout_alignParentLeft="true"
+   			/>
+   		<ProgressBar
+		        android:id="@+id/game_rsp_p1_lifebar"
+		        style="@android:style/Widget.ProgressBar.Horizontal"
+		        android:layout_width="wrap_content"
+		        android:layout_height="wrap_content"
+		        android:layout_toRightOf="@+id/game_rsp_p1_lifebar_lable"
+		        android:layout_alignBottom="@+id/game_rsp_p1_lifebar_lable"
+		        android:paddingBottom="5dp"
+	        	android:max="100" 
+	        	android:progress="50"
+	        	android:progressDrawable="@layout/lifebar"/>
+   		<TextView
+	        android:id="@+id/game_rsp_p1_lifebar_name"
+	        android:layout_width="wrap_content"
+	        android:layout_height="wrap_content"
+	        android:layout_toRightOf="@+id/game_rsp_p1_lifebar"
+	        android:layout_alignBottom="@+id/game_rsp_p1_lifebar_lable"
+		    android:paddingBottom="5dp"
+   		    android:paddingLeft="5dp"
+   		    android:paddingRight="20dp"
+	        android:text="P1"
+	        android:textSize="14sp"
+	        android:textColor="#FFFFFF"
+	        android:textStyle="bold"  />
+	    
+	</RelativeLayout>
+    <RelativeLayout 
+        android:id="@+id/game_rsp_layout_lifebar_p2"
+	    android:layout_width="fill_parent"
+   		android:layout_height="wrap_content"
+   		android:layout_alignParentTop="true"
+   		android:layout_alignParentRight="true"
+   		android:layout_margin="10dp" >
+
+   		<ImageView 
+   		    android:id="@+id/game_rsp_p2_lifebar_lable"
+   		    android:layout_width="wrap_content"
+   		    android:layout_height="wrap_content"
+   		    android:background="@drawable/lifebar_lable" 
+   		    android:layout_alignParentRight="true"
+   			/>
+   		<ProgressBar
+		        android:id="@+id/game_rsp_p2_lifebar"
+		        style="@android:style/Widget.ProgressBar.Horizontal"
+		        android:layout_width="wrap_content"
+		        android:layout_height="wrap_content"
+		        android:layout_toLeftOf="@+id/game_rsp_p2_lifebar_lable"
+		        android:layout_alignBottom="@+id/game_rsp_p2_lifebar_lable"
+		        android:paddingBottom="5dp"
+	        	android:max="100" 
+	        	android:progress="50"
+	        	android:progressDrawable="@layout/lifebar"/>
+   		<TextView
+	        android:id="@+id/game_rsp_p2_lifebar_name"
+	        android:layout_width="wrap_content"
+	        android:layout_height="wrap_content"
+		    android:layout_toLeftOf="@+id/game_rsp_p2_lifebar"
+   		    android:layout_alignBottom="@+id/game_rsp_p2_lifebar_lable"
+   		    android:paddingBottom="5dp"
+   		    android:paddingLeft="20dp"
+   		    android:paddingRight="5dp"
+	        android:text="COM"
+	        android:textSize="14sp"
+	        android:textColor="#FFFFFF"
+	        android:textStyle="bold" />
+	    
+	</RelativeLayout>
+	<RelativeLayout 
+        android:id="@+id/game_rsp_layout_vsmsg"
+	    android:layout_width="fill_parent"
+   		android:layout_height="wrap_content"
+   		android:layout_centerInParent="true" >
+   		<ImageView
+	        android:id="@+id/game_rsp_vsmsg_vs"
+	        android:layout_width="wrap_content"
+	        android:layout_height="wrap_content"
+		    android:layout_centerInParent="true"
+   		    android:paddingTop="5dp"
+   		    android:paddingBottom="5dp"
+	        android:background="@drawable/vs_lable" />
+   		<TextView
+	        android:id="@+id/game_rsp_vsmsg_p1name"
+	        android:layout_width="wrap_content"
+	        android:layout_height="wrap_content"
+		    android:layout_below="@+id/game_rsp_vsmsg_vs"
+   		    android:layout_centerHorizontal="true"
+   		    android:layout_marginTop="30dp"
+   		    android:layout_marginBottom="5dp"
+   		    android:paddingRight="70dp"
+	        android:text="P1"
+	        android:textSize="20sp"
+	        android:textColor="#FFFFFF"
+	        android:textStyle="bold" />
+   		<TextView
+	        android:id="@+id/game_rsp_vsmsg_p2name"
+	        android:layout_width="wrap_content"
+	        android:layout_height="wrap_content"
+		    android:layout_above="@+id/game_rsp_vsmsg_vs"
+   		    android:layout_centerHorizontal="true"
+   		    android:layout_marginTop="5dp"
+   		    android:layout_marginBottom="30dp"
+   		    android:paddingLeft="70dp"
+	        android:text="COM"
+	        android:textSize="20sp"
+	        android:textColor="#FFFFFF"
+	        android:textStyle="bold" />
+   		
+   	</RelativeLayout>
+    
+	<RelativeLayout 
+        android:id="@+id/game_rsp_layout_roundmsg"
+	    android:layout_width="fill_parent"
+   		android:layout_height="wrap_content"
+   		android:layout_centerInParent="true">
+   		<LinearLayout 
+        	android:layout_width="wrap_content"
+   			android:layout_height="wrap_content"
+   			android:orientation="horizontal"
+   			android:layout_centerInParent="true" >
+
+	   		<ImageView
+	   		    android:id="@+id/game_rsp_roundmsg_round"
+	   		    android:layout_width="wrap_content"
+	   		    android:layout_height="wrap_content"
+	   		    android:layout_gravity="center_vertical"
+	   		    android:background="@drawable/round_lable"
+	   		    android:paddingBottom="5dp"
+	   		    android:paddingTop="5dp" />
+	
+	   		<TextView
+		        android:id="@+id/game_rsp_roundmsg_roundnumber"
+		        android:layout_width="wrap_content"
+		        android:layout_height="wrap_content"
+	   		    android:layout_gravity="center_vertical"
+			    android:layout_marginTop="5dp"
+	   		    android:layout_marginBottom="5dp"
+	   		    android:paddingLeft="10dp"
+		        android:text="1"
+		        android:textSize="32sp"
+		        android:textColor="#FFFFFF"
+		        android:textStyle="bold" />
+	   	</LinearLayout>
+   	</RelativeLayout>
+   	<RelativeLayout 
+        android:id="@+id/game_rsp_layout_cardtable"
+	    android:layout_width="fill_parent"
+   		android:layout_height="wrap_content"
+   		android:layout_centerInParent="true">
+   		<LinearLayout 
+        	android:layout_width="wrap_content"
+   			android:layout_height="wrap_content"
+   			android:orientation="vertical"
+   			android:layout_centerInParent="true" >
+	   		<RelativeLayout 
+		        android:id="@+id/game_rsp_layout_p2_cardtable"
+			    android:layout_width="fill_parent"
+		   		android:layout_height="wrap_content"
+		   		android:layout_centerInParent="true">
+		   		   <GridView
+				       android:id="@+id/game_rsp_p2_cardtable"
+				       android:layout_width="fill_parent"
+				       android:layout_height="wrap_content"
+				       android:columnWidth="60dp"
+				       android:gravity="center"
+				       android:horizontalSpacing="10dp"
+				       android:numColumns="3"
+				       android:stretchMode="columnWidth"
+				       android:verticalSpacing="20dp" />
+		   	</RelativeLayout>
+	   		<RelativeLayout 
+		        android:id="@+id/game_rsp_layout_p1_cardtable"
+			    android:layout_width="fill_parent"
+		   		android:layout_height="wrap_content"
+		   		android:layout_centerInParent="true">
+		   		   <GridView
+				       android:id="@+id/game_rsp_p1_cardtable"
+				       android:layout_width="fill_parent"
+				       android:layout_height="wrap_content"
+				       android:columnWidth="80dp"
+				       android:gravity="center"
+				       android:horizontalSpacing="10dp"
+				       android:numColumns="3"
+				       android:stretchMode="columnWidth"
+				       android:verticalSpacing="20dp" />
+		   	</RelativeLayout>
+	   	</LinearLayout>
+  	</RelativeLayout>
+  	<RelativeLayout 
+        android:id="@+id/game_rsp_layout_fightmsg"
+	    android:layout_width="fill_parent"
+   		android:layout_height="wrap_content"
+   		android:layout_centerInParent="true">
+   		<LinearLayout 
+        	android:layout_width="wrap_content"
+   			android:layout_height="wrap_content"
+   			android:orientation="horizontal"
+   			android:layout_centerInParent="true" >
+
+	   		<ImageView
+	   		    android:id="@+id/game_rsp_fightmsg"
+	   		    android:layout_width="wrap_content"
+	   		    android:layout_height="wrap_content"
+	   		    android:layout_gravity="center_vertical"
+	   		    android:background="@drawable/fight_lable"
+	   		    android:paddingBottom="5dp"
+	   		    android:paddingTop="5dp" />
+	
+	   	</LinearLayout>
+   	</RelativeLayout>
+   	<RelativeLayout 
+        android:id="@+id/game_rsp_layout_resultmsg"
+	    android:layout_width="fill_parent"
+   		android:layout_height="wrap_content"
+   		android:layout_centerInParent="true">
+   		<LinearLayout 
+        	android:layout_width="wrap_content"
+   			android:layout_height="wrap_content"
+   			android:orientation="horizontal"
+   			android:layout_centerInParent="true" >
+
+	   		<ImageView
+	   		    android:id="@+id/game_rsp_resultmsg"
+	   		    android:layout_width="wrap_content"
+	   		    android:layout_height="wrap_content"
+	   		    android:layout_gravity="center_vertical"
+	   		    android:background="@drawable/result_win_lable"
+	   		    android:paddingBottom="5dp"
+	   		    android:paddingTop="5dp" />
+	
+	   	</LinearLayout>
+   	</RelativeLayout>
+   	<RelativeLayout 
+        android:id="@+id/game_rsp_layout_choice"
+	    android:layout_width="fill_parent"
+   		android:layout_height="wrap_content"
+   		android:layout_centerInParent="true">
+   		<LinearLayout 
+        	android:layout_width="fill_parent"
+   			android:layout_height="fill_parent"
+   			android:orientation="vertical"
+   			android:layout_centerInParent="true" >
+
+	   		<RelativeLayout
+	   		    android:id="@+id/game_rsp_layout_p2choice"
+	   		    android:layout_width="fill_parent"
+	   		    android:layout_height="fill_parent"
+	   		    android:layout_weight="1.0" >
+
+		   		  <ImageView
+		   		      android:id="@+id/game_rsp_p2_choice"
+		   		      android:layout_width="wrap_content"
+		   		      android:layout_height="wrap_content"
+		   		      android:layout_gravity="center_vertical"
+		   		      android:background="@drawable/result_win_lable"
+		   		      android:paddingBottom="5dp"
+		   		      android:paddingTop="5dp" />
+		   	</RelativeLayout>
+	   		<RelativeLayout 
+		        android:id="@+id/game_rsp_layout_p1choice"
+			    android:layout_width="fill_parent"
+		   		android:layout_height="fill_parent"
+		   		android:layout_weight="1.0">
+		   		   <ImageView
+		   		      android:id="@+id/game_rsp_p1_choice"
+		   		      android:layout_width="wrap_content"
+		   		      android:layout_height="wrap_content"
+		   		      android:layout_gravity="center_vertical"
+		   		      android:background="@drawable/result_win_lable"
+		   		      android:paddingBottom="5dp"
+		   		      android:paddingTop="5dp" />
+		   	</RelativeLayout>
+	   	</LinearLayout>
+  	</RelativeLayout>
+</RelativeLayout>
